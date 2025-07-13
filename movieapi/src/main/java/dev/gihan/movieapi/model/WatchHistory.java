@@ -1,10 +1,16 @@
 package dev.gihan.movieapi.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 @Table(name = "watch_history")
 public class WatchHistory {
 
@@ -21,7 +27,7 @@ public class WatchHistory {
     private Movie movie;
 
     @Column(name = "watch_position_seconds")
-    private Integer watchPositionSeconds; 
+    private Integer watchPositionSeconds;
 
     @Column(name = "completed")
     private Boolean completed;
@@ -32,4 +38,14 @@ public class WatchHistory {
     @Column(name = "last_updated")
     private LocalDateTime lastUpdated;
 
+    @PrePersist
+    protected void onCreate() {
+        watchedAt = LocalDateTime.now();
+        lastUpdated = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        lastUpdated = LocalDateTime.now();
+    }
 }

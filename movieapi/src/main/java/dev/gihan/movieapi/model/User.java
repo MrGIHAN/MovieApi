@@ -57,6 +57,6 @@ public class User {
     }
 
     public boolean isAdmin() {
-        return "ADMIN".equals(role);
+        return Role.ADMIN.equals(role);
     }
 }

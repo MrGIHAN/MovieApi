@@ -8,6 +8,8 @@ import dev.gihan.movieapi.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -21,14 +23,18 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody UserRequestDto userRequestDto) {
+        System.out.println("=== Register User Endpoint Hit ===");
+        System.out.println("Email: " + userRequestDto.getEmail());
         try {
             User user = userService.registerUser(userRequestDto);
+            System.out.println("User registered successfully: " + user.getEmail());
             return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
                     "message", "User registered successfully",
                     "userId", user.getId(),
                     "email", user.getEmail()
             ));
         } catch (RuntimeException e) {
+            System.out.println("Error registering user: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
                     "error", e.getMessage()
             ));
@@ -37,33 +43,42 @@ public class UserController {
 
     @PostMapping("/register-admin")
     public ResponseEntity<?> registerAdmin(@RequestBody UserRequestDto userRequestDto) {
+        System.out.println("=== Register Admin Endpoint Hit ===");
+        System.out.println("Email: " + userRequestDto.getEmail());
+        System.out.println("First Name: " + userRequestDto.getFirstName());
+        System.out.println("Last Name: " + userRequestDto.getLastName());
+
         try {
             User admin = userService.registerAdmin(userRequestDto);
+            System.out.println("Admin registered successfully: " + admin.getEmail());
             return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
                     "message", "Admin registered successfully",
                     "userId", admin.getId(),
                     "email", admin.getEmail()
             ));
         } catch (RuntimeException e) {
+            System.out.println("Error registering admin: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
                     "error", e.getMessage()
             ));
         }
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestBody Map<String, String> loginRequest) {
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser() {
         try {
-            String email = loginRequest.get("email");
-            String password = loginRequest.get("password");
-
-            UserResponseDto userResponse = userService.loginUser(email, password);
-            return ResponseEntity.ok(Map.of(
-                    "message", "Login successful",
-                    "user", userResponse
-            ));
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication != null && authentication.isAuthenticated()) {
+                String email = authentication.getName();
+                UserResponseDto userResponse = userService.getUserByEmail(email);
+                return ResponseEntity.ok(userResponse);
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                        "error", "User not authenticated"
+                ));
+            }
         } catch (NotFoundException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
                     "error", e.getMessage()
             ));
         }
@@ -95,7 +110,9 @@ public class UserController {
 
     @GetMapping("/admin-exists")
     public ResponseEntity<?> checkAdminExists() {
+        System.out.println("=== Admin Exists Endpoint Hit ===");
         boolean adminExists = userService.isAdminExists();
+        System.out.println("Admin exists: " + adminExists);
         return ResponseEntity.ok(Map.of(
                 "adminExists", adminExists
         ));

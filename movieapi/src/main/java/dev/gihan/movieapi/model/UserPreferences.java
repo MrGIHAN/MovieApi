@@ -1,8 +1,8 @@
 package dev.gihan.movieapi.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
@@ -10,13 +10,24 @@ import java.util.List;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
+@Data
+@Table(name = "user_preferences")
 public class UserPreferences {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String theme; // "light" or "dark"
+
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    private String theme = "light"; // "light" or "dark"
+
+    @ElementCollection
+    @CollectionTable(name = "user_favorite_genres", joinColumns = @JoinColumn(name = "user_preferences_id"))
+    @Column(name = "genre")
     private List<String> favoriteGenres;
-    private String language;
 
-
+    private String language = "en";
 }
