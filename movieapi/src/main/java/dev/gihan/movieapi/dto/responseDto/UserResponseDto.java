@@ -9,6 +9,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserResponseDto {
+
     private String id;
     private String email;
     private String name;
@@ -16,4 +17,5 @@ public class UserResponseDto {
     private List<Long> watchlist; // Movie IDs
     private List<Long> history;   // Movie IDs
     private UserPreferencesDto preferences;
+
 } 

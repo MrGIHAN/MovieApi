@@ -1,6 +1,6 @@
 package dev.gihan.movieapi.model;
 
-
+import dev.gihan.movieapi.model.option.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,8 +21,9 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
-    private String role;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
     @Column(unique = true, nullable = false)
     private String email;
@@ -39,11 +40,23 @@ public class User {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<WatchHistory> watchHistories = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Watchlist> watchLists = new ArrayList<>();
 
+    // Helper methods
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
 
+    public boolean isAdmin() {
+        return Role.ADMIN.equals(role);
+    }
 }
