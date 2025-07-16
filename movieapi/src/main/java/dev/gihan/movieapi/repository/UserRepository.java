@@ -1,6 +1,7 @@
 package dev.gihan.movieapi.repository;
 
 import dev.gihan.movieapi.model.User;
+import dev.gihan.movieapi.model.option.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,9 +12,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmail(String email);
 
-    Optional<User> findByRole(String role);
+    Optional<User> findByRole(Role role);
 
     boolean existsByEmail(String email);
 
-    boolean existsByRole(String role);
+    boolean existsByRole(Role role);
 }

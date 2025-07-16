@@ -27,8 +27,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User registerUser(UserRequestDto userRequestDto) {
+        // Validate input
+        if (userRequestDto == null || userRequestDto.getEmail() == null ||
+                userRequestDto.getPassword() == null || userRequestDto.getFirstName() == null) {
+            throw new RuntimeException("Missing required fields");
+        }
+
         // Check if email already exists
-        if (userRepository.findByEmail(userRequestDto.getEmail()).isPresent()) {
+        if (userRepository.existsByEmail(userRequestDto.getEmail())) {
             throw new RuntimeException("Email already exists");
         }
 
@@ -45,13 +51,19 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User registerAdmin(UserRequestDto userRequestDto) {
-        // Check if admin already exists
-        if (isAdminExists()) {
+        // Validate input
+        if (userRequestDto == null || userRequestDto.getEmail() == null ||
+                userRequestDto.getPassword() == null || userRequestDto.getFirstName() == null) {
+            throw new RuntimeException("Missing required fields");
+        }
+
+        // Check if admin already exists using the correct method
+        if (userRepository.existsByRole(Role.ADMIN)) {
             throw new RuntimeException("Admin already exists. Only one admin is allowed.");
         }
 
         // Check if email already exists
-        if (userRepository.findByEmail(userRequestDto.getEmail()).isPresent()) {
+        if (userRepository.existsByEmail(userRequestDto.getEmail())) {
             throw new RuntimeException("Email already exists");
         }
 
@@ -68,6 +80,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDto loginUser(String email, String password) throws NotFoundException {
+        // Validate input
+        if (email == null || email.trim().isEmpty()) {
+            throw new NotFoundException("Email is required");
+        }
+        if (password == null || password.trim().isEmpty()) {
+            throw new NotFoundException("Password is required");
+        }
+
         Optional<User> userOptional = userRepository.findByEmail(email);
 
         if (userOptional.isEmpty()) {
@@ -77,7 +97,7 @@ public class UserServiceImpl implements UserService {
         User user = userOptional.get();
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new NotFoundException("Invalid credentials");
+            throw new NotFoundException("Invalid password");
         }
 
         return convertToUserResponseDto(user);
@@ -85,6 +105,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDto getUserById(Long id) throws NotFoundException {
+        if (id == null) {
+            throw new NotFoundException("User ID is required");
+        }
+
         Optional<User> userOptional = userRepository.findById(id);
 
         if (userOptional.isEmpty()) {
@@ -96,6 +120,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDto getUserByEmail(String email) throws NotFoundException {
+        if (email == null || email.trim().isEmpty()) {
+            throw new NotFoundException("Email is required");
+        }
+
         Optional<User> userOptional = userRepository.findByEmail(email);
 
         if (userOptional.isEmpty()) {
@@ -107,11 +135,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean isAdminExists() {
-        return userRepository.findByRole(Role.ADMIN.name()).isPresent();
+        return userRepository.existsByRole(Role.ADMIN);
     }
 
     @Override
     public User findByEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return null;
+        }
         return userRepository.findByEmail(email).orElse(null);
     }
 
@@ -122,7 +153,7 @@ public class UserServiceImpl implements UserService {
         responseDto.setName(user.getFirstName() + " " + user.getLastName());
         responseDto.setAvatarUrl(null); // Can be implemented later
 
-        // Extract watchlist and history IDs
+        // Initialize empty lists for watchlist and history
         responseDto.setWatchlist(new ArrayList<>());
         responseDto.setHistory(new ArrayList<>());
 
