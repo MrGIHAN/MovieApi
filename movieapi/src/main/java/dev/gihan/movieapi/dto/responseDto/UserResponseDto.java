@@ -14,8 +14,11 @@ public class UserResponseDto {
     private String email;
     private String name;
     private String avatarUrl;
+
     private List<Long> watchlist; // Movie IDs
     private List<Long> history;   // Movie IDs
+    private List<Long> favorites; // ✅ NEW
+
     private UserPreferencesDto preferences;
 
-} 
+}

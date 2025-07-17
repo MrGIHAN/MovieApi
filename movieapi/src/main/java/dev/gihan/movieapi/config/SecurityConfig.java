@@ -23,6 +23,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Temporarily allow all user endpoints for debugging
                         .requestMatchers("/api/users/**").permitAll()
+                        .requestMatchers("/api/users/me").permitAll()
                         .requestMatchers("/api/movies").permitAll()
                         .requestMatchers("/api/movies/{id}").permitAll()
                         .requestMatchers("/api/movies/genre/**").permitAll()

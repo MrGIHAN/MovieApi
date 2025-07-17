@@ -1,5 +1,6 @@
 package dev.gihan.movieapi.service;
 
+import dev.gihan.movieapi.dto.requestDto.UpdateUserRequestDto;
 import dev.gihan.movieapi.dto.requestDto.UserRequestDto;
 import dev.gihan.movieapi.dto.responseDto.UserResponseDto;
 import dev.gihan.movieapi.model.User;
@@ -11,7 +12,7 @@ public interface UserService {
 
     User registerAdmin(UserRequestDto userRequestDto);
 
-    UserResponseDto loginUser(String email, String password) throws NotFoundException;
+//    UserResponseDto loginUser(String email, String password) throws NotFoundException;
 
     UserResponseDto getUserById(Long id) throws NotFoundException;
 
@@ -20,4 +21,8 @@ public interface UserService {
     boolean isAdminExists();
 
     User findByEmail(String email);
+
+    UserResponseDto updateProfile(String email, UpdateUserRequestDto request) throws NotFoundException;
+
+
 }
