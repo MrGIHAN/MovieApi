@@ -4,21 +4,31 @@ import dev.gihan.movieapi.dto.requestDto.MovieRequestDto;
 import dev.gihan.movieapi.dto.responseDto.MessageResponseDto;
 import dev.gihan.movieapi.exception.NotFoundException;
 import dev.gihan.movieapi.model.Movie;
+import dev.gihan.movieapi.model.User;
 import dev.gihan.movieapi.service.MovieService;
+import dev.gihan.movieapi.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/movies")
 @RequiredArgsConstructor
 public class MovieController {
 
+    @Autowired
     private final MovieService movieService;
+
+    @Autowired
+    private final UserService userService;
 
     // ✅ Anyone can see all movies - NO AUTH REQUIRED
     @GetMapping
@@ -73,4 +83,29 @@ public class MovieController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<Movie>> searchMovies(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String genre,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(defaultValue = "title") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir
+    ) {
+        return ResponseEntity.ok(movieService.searchMovies(title, genre, year, sortBy, sortDir));
+    }
+
+    @GetMapping("/recommendations")
+    public ResponseEntity<?> getRecommendations() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "User not authenticated"));
+        }
+
+        User user = userService.findByEmail(auth.getName());
+        return ResponseEntity.ok(movieService.getRecommendationsForUser(user));
+    }
+
+
 }
