@@ -58,6 +58,24 @@ public class Movie {
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<WatchHistory> watchHistories = new ArrayList<>();
 
+    @Column(name = "trailer_url")
+    private String trailerUrl;
+
+    @Column(name = "view_count", columnDefinition = "BIGINT DEFAULT 0")
+    private Long viewCount = 0L;
+
+    @Column(name = "featured")
+    private Boolean featured = false;
+
+    @Column(name = "trending")
+    private Boolean trending = false;
+
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Comment> comments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<StreamingSession> streamingSessions = new ArrayList<>();
+
 
 
 }

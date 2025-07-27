@@ -88,7 +88,7 @@ public class UserServiceImpl implements UserService {
         Optional<User> userOptional = userRepository.findById(id);
 
         if (userOptional.isEmpty()) {
-            throw new NotFoundException("User not found with id : " + id);
+            throw new NotFoundException("User not found with id: " + id);
         }
 
         return convertToUserResponseDto(userOptional.get());
