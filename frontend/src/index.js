@@ -1,16 +1,39 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
 import App from './App';
+import './styles/globals.css';
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+// Get the root element
+const container = document.getElementById('root');
+const root = ReactDOM.createRoot(container);
+
+// Render the app
 root.render(
   <React.StrictMode>
     <App />
   </React.StrictMode>
 );
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+// Performance monitoring (optional)
+if (process.env.NODE_ENV === 'development') {
+  // Log app performance
+  const observer = new PerformanceObserver((list) => {
+    list.getEntries().forEach((entry) => {
+      console.log(`${entry.name}: ${entry.duration}ms`);
+    });
+  });
+  
+  observer.observe({ entryTypes: ['navigation', 'paint'] });
+}
 
+// Hot module replacement for development
+if (process.env.NODE_ENV === 'development' && module.hot) {
+  module.hot.accept('./App', () => {
+    const NextApp = require('./App').default;
+    root.render(
+      <React.StrictMode>
+        <NextApp />
+      </React.StrictMode>
+    );
+  });
+}

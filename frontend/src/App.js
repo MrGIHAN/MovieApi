@@ -21,12 +21,12 @@ import Search from './pages/Search';
 import Profile from './pages/Profile';
 import Admin from './pages/Admin';
 
-// Auth Components (we'll create these as simple components for now)
+// Auth Components
 import LoginForm from './components/auth/LoginForm';
 import RegisterForm from './components/auth/RegisterForm';
 
-// User Pages
-import Favorites from './components/user/Favorites';
+// User Components
+import Favorites from './components/user/ Favorites';
 import WatchLater from './components/user/WatchLater';
 import WatchHistory from './components/user/WatchHistory';
 

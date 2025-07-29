@@ -142,21 +142,33 @@
     @apply transform transition-all duration-300 hover:scale-105 hover:shadow-2xl;
   }
 
-  /* Movie card styles */
+  /* Movie card styles - Fixed without group utility */
   .movie-card {
-    @apply relative overflow-hidden rounded-lg bg-netflix-darkGray group cursor-pointer transform transition-all duration-300 hover:scale-105 hover:z-10;
+    @apply relative overflow-hidden rounded-lg bg-netflix-darkGray cursor-pointer transform transition-all duration-300 hover:scale-105 hover:z-10;
   }
 
   .movie-card-image {
-    @apply w-full aspect-video object-cover transition-transform duration-300 group-hover:scale-110;
+    @apply w-full aspect-video object-cover transition-transform duration-300;
+  }
+
+  .movie-card:hover .movie-card-image {
+    @apply scale-110;
   }
 
   .movie-card-overlay {
-    @apply absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300;
+    @apply absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 transition-opacity duration-300;
+  }
+
+  .movie-card:hover .movie-card-overlay {
+    @apply opacity-100;
   }
 
   .movie-card-content {
-    @apply absolute bottom-0 left-0 right-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300;
+    @apply absolute bottom-0 left-0 right-0 p-4 transform translate-y-full transition-transform duration-300;
+  }
+
+  .movie-card:hover .movie-card-content {
+    @apply translate-y-0;
   }
 
   /* Hero section styles */
@@ -228,7 +240,11 @@
 
   /* Video player controls */
   .video-controls {
-    @apply absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300;
+    @apply absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 transform translate-y-full transition-transform duration-300;
+  }
+
+  .video-controls:hover {
+    @apply translate-y-0;
   }
 
   .progress-bar {
@@ -345,14 +361,14 @@
   }
 
   /* Text truncation */
-  .truncate-2 {
+  .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
 
-  .truncate-3 {
+  .line-clamp-3 {
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;

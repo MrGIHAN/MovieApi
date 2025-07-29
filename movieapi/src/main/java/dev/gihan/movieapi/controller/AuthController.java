@@ -15,6 +15,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "http://localhost:3000")
@@ -52,12 +54,29 @@ public class AuthController {
     @PostMapping("/register-admin")
     public ResponseEntity<?> registerAdmin(@RequestBody UserRequestDto registerRequest) {
         try {
+            // Check if admin already exists
+            if (userService.isAdminExists()) {
+                return ResponseEntity.badRequest()
+                        .body(new MessageResponseDto("Admin already exists. Only one admin is allowed."));
+            }
+
             User admin = userService.registerAdmin(registerRequest);
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(new MessageResponseDto("Admin registered successfully"));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest()
                     .body(new MessageResponseDto(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/admin-exists")
+    public ResponseEntity<?> checkAdminExists() {
+        try {
+            boolean adminExists = userService.isAdminExists();
+            return ResponseEntity.ok(Map.of("adminExists", adminExists));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new MessageResponseDto("Error checking admin status: " + e.getMessage()));
         }
     }
 
