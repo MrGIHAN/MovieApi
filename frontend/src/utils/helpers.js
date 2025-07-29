@@ -1,4 +1,3 @@
-import { format, parseISO } from 'date-fns';
 import { GENRE_DISPLAY_NAMES } from './constants';
 
 /**
@@ -73,17 +72,21 @@ export const formatVideoTime = (seconds) => {
 };
 
 /**
- * Format date to readable format
+ * Format date to readable format (simplified without date-fns)
  * @param {string|Date} date - Date string or Date object
- * @param {string} formatStr - Format string (default: 'MMM dd, yyyy')
+ * @param {string} formatStr - Format string (ignored for now)
  * @returns {string} Formatted date
  */
 export const formatDate = (date, formatStr = 'MMM dd, yyyy') => {
   if (!date) return 'N/A';
   
   try {
-    const dateObj = typeof date === 'string' ? parseISO(date) : date;
-    return format(dateObj, formatStr);
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return dateObj.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   } catch (error) {
     return 'Invalid Date';
   }

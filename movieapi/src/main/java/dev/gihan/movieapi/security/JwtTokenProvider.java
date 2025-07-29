@@ -20,8 +20,22 @@ public class JwtTokenProvider {
     @Autowired
     private JwtConfig jwtConfig;
 
+    private SecretKey signingKey;
+
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(jwtConfig.getSecret().getBytes());
+        if (signingKey == null) {
+            // Check if the configured secret is long enough
+            String secret = jwtConfig.getSecret();
+            if (secret.getBytes().length >= 64) {
+                // Use the configured secret if it's long enough
+                signingKey = Keys.hmacShaKeyFor(secret.getBytes());
+            } else {
+                // Generate a secure key for HS512
+                signingKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+                System.out.println("Generated secure key for HS512. Consider updating your configuration.");
+            }
+        }
+        return signingKey;
     }
 
     public String generateToken(Authentication authentication) {

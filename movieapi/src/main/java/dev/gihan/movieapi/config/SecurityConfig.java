@@ -56,6 +56,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints - no authentication required
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/users/admin-exists").permitAll()
+                        .requestMatchers("/api/users/register-admin").permitAll() // Allow public admin registration
                         .requestMatchers("/api/movies", "/api/movies/**").permitAll()
                         .requestMatchers("/api/stream/**").permitAll()
                         .requestMatchers("/api/comments/movie/**").permitAll()
