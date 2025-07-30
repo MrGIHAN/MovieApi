@@ -104,20 +104,43 @@ export const AuthProvider = ({ children }) => {
       dispatch({ type: ActionTypes.SET_LOADING, payload: true });
 
       try {
-        // Try to auto-login with stored token
-        const success = await authService.autoLogin();
-        
-        if (success) {
-          const user = authService.getCurrentUser();
-          dispatch({
-            type: ActionTypes.SET_USER,
-            payload: user,
-          });
+        const token = AuthStorage.getToken();
+        const user = AuthStorage.getUser();
+
+        if (token && user) {
+          // Validate token
+          const isValid = await authService.validateToken(token);
+          
+          if (isValid) {
+            dispatch({
+              type: ActionTypes.SET_USER,
+              payload: user,
+            });
+          } else {
+            // Try to refresh token
+            const refreshToken = AuthStorage.getRefreshToken();
+            if (refreshToken) {
+              try {
+                const response = await authService.refreshToken(refreshToken);
+                dispatch({
+                  type: ActionTypes.LOGIN_SUCCESS,
+                  payload: { user: response.user },
+                });
+              } catch (refreshError) {
+                AuthStorage.clearAuth();
+                dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+              }
+            } else {
+              AuthStorage.clearAuth();
+              dispatch({ type: ActionTypes.SET_LOADING, payload: false });
+            }
+          }
         } else {
           dispatch({ type: ActionTypes.SET_LOADING, payload: false });
         }
       } catch (error) {
         console.error('Auto-login failed:', error);
+        AuthStorage.clearAuth();
         dispatch({ type: ActionTypes.SET_LOADING, payload: false });
       }
     };
@@ -125,25 +148,8 @@ export const AuthProvider = ({ children }) => {
     initializeAuth();
   }, []);
 
-  // Setup token refresh
-  useEffect(() => {
-    if (state.isAuthenticated) {
-      const refreshInterval = authService.setupTokenRefresh(() => {
-        // Token expired, logout user
-        logout();
-      });
-
-      return () => {
-        if (refreshInterval) {
-          clearInterval(refreshInterval);
-        }
-      };
-    }
-  }, [state.isAuthenticated]);
-
   /**
    * Login user
-   * @param {object} credentials - Login credentials
    */
   const login = async (credentials) => {
     dispatch({ type: ActionTypes.LOGIN_START });
@@ -168,33 +174,12 @@ export const AuthProvider = ({ children }) => {
 
   /**
    * Register user
-   * @param {object} userData - Registration data
    */
   const register = async (userData) => {
     dispatch({ type: ActionTypes.SET_LOADING, payload: true });
 
     try {
       const response = await authService.register(userData);
-      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
-      return response;
-    } catch (error) {
-      dispatch({
-        type: ActionTypes.LOGIN_FAILURE,
-        payload: { error: error.message },
-      });
-      throw error;
-    }
-  };
-
-  /**
-   * Register admin
-   * @param {object} adminData - Admin registration data
-   */
-  const registerAdmin = async (adminData) => {
-    dispatch({ type: ActionTypes.SET_LOADING, payload: true });
-
-    try {
-      const response = await authService.registerAdmin(adminData);
       dispatch({ type: ActionTypes.SET_LOADING, payload: false });
       return response;
     } catch (error) {
@@ -221,16 +206,13 @@ export const AuthProvider = ({ children }) => {
 
   /**
    * Update user profile
-   * @param {object} updates - Profile updates
    */
   const updateUser = (updates) => {
-    // Update user in context
     dispatch({
       type: ActionTypes.UPDATE_USER,
       payload: updates,
     });
 
-    // Update user in storage
     const updatedUser = { ...state.user, ...updates };
     AuthStorage.saveUser(updatedUser);
   };
@@ -243,50 +225,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Check if user has specific role
-   * @param {string} role - Role to check
-   * @returns {boolean} Has role
-   */
-  const hasRole = (role) => {
-    return state.user?.role === role;
-  };
-
-  /**
    * Check if user is admin
-   * @returns {boolean} Is admin
    */
   const isAdmin = () => {
-    return hasRole('ADMIN');
-  };
-
-  /**
-   * Check if user is regular user
-   * @returns {boolean} Is user
-   */
-  const isUser = () => {
-    return hasRole('USER');
-  };
-
-  /**
-   * Get user's full name
-   * @returns {string} Full name
-   */
-  const getUserFullName = () => {
-    if (!state.user) return '';
-    return `${state.user.firstName} ${state.user.lastName}`.trim();
-  };
-
-  /**
-   * Get user's initials
-   * @returns {string} User initials
-   */
-  const getUserInitials = () => {
-    if (!state.user) return 'U';
-    
-    const firstInitial = state.user.firstName?.charAt(0).toUpperCase() || '';
-    const lastInitial = state.user.lastName?.charAt(0).toUpperCase() || '';
-    
-    return firstInitial + lastInitial || 'U';
+    return state.user?.role === 'ADMIN';
   };
 
   // Context value
@@ -300,17 +242,12 @@ export const AuthProvider = ({ children }) => {
     // Actions
     login,
     register,
-    registerAdmin,
     logout,
     updateUser,
     clearError,
 
     // Utility functions
-    hasRole,
     isAdmin,
-    isUser,
-    getUserFullName,
-    getUserInitials,
   };
 
   return (
