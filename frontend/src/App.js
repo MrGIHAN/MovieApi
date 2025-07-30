@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
 // Context Providers
@@ -62,11 +62,11 @@ function App() {
                 }}
               />
 
-              {/* Header */}
+              {/* Header - Always visible */}
               <Header />
 
               {/* Main Content */}
-              <main className="pt-16">
+              <main className="pt-16 min-h-screen">
                 <Routes>
                   {/* Public Routes */}
                   <Route path="/" element={<Home />} />
@@ -75,12 +75,12 @@ function App() {
                   <Route path="/watch/:id" element={<Watch />} />
                   <Route path="/search" element={<Search />} />
 
-                  {/* Auth Routes (Guest only) */}
+                  {/* Guest Only Routes (redirect if authenticated) */}
                   <Route
                     path="/login"
                     element={
                       <GuestRoute>
-                        <div className="min-h-screen flex items-center justify-center">
+                        <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
                           <LoginForm />
                         </div>
                       </GuestRoute>
@@ -90,7 +90,7 @@ function App() {
                     path="/register"
                     element={
                       <GuestRoute>
-                        <div className="min-h-screen flex items-center justify-center">
+                        <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
                           <RegisterForm />
                         </div>
                       </GuestRoute>
@@ -137,7 +137,7 @@ function App() {
                     }
                   />
 
-                  {/* Admin Routes */}
+                  {/* Admin Routes - All admin routes under /admin */}
                   <Route
                     path="/admin/*"
                     element={
@@ -146,6 +146,9 @@ function App() {
                       </AdminRoute>
                     }
                   />
+
+                  {/* Redirect old admin route */}
+                  <Route path="/admin-dashboard" element={<Navigate to="/admin" replace />} />
 
                   {/* 404 Page */}
                   <Route
@@ -157,12 +160,7 @@ function App() {
                           <p className="text-netflix-lightGray text-xl mb-8">
                             Oops! The page you're looking for doesn't exist.
                           </p>
-                          <a
-                            href="/"
-                            className="btn btn-primary"
-                          >
-                            Go Home
-                          </a>
+                          <Navigate to="/" replace />
                         </div>
                       </div>
                     }

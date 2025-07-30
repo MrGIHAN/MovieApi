@@ -1,0 +1,505 @@
+/* Page-specific styles for Netflix Clone */
+
+/* Home Page */
+.home-hero {
+  @apply relative min-h-screen flex items-center justify-center overflow-hidden;
+}
+
+.home-hero-background {
+  @apply absolute inset-0 w-full h-full object-cover;
+}
+
+.home-hero-overlay {
+  @apply absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent;
+}
+
+.home-hero-overlay::after {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent;
+}
+
+.home-hero-content {
+  @apply relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.hero-text-shadow {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.home-section {
+  @apply py-16 bg-netflix-black;
+}
+
+.home-cta {
+  @apply py-16 bg-netflix-darkGray;
+}
+
+/* Browse Page */
+.browse-container {
+  @apply min-h-screen pt-24 bg-netflix-black;
+}
+
+.browse-header {
+  @apply mb-8;
+}
+
+.browse-filters {
+  @apply mb-8 flex flex-wrap items-center gap-4;
+}
+
+.browse-genre-buttons {
+  @apply flex flex-wrap gap-2;
+}
+
+.browse-genre-button {
+  @apply px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200;
+}
+
+.browse-genre-button.active {
+  @apply bg-netflix-red text-white;
+}
+
+.browse-genre-button.inactive {
+  @apply bg-netflix-gray text-netflix-lightGray hover:text-white hover:bg-netflix-lightGray;
+}
+
+/* Movie Detail Page */
+.movie-detail-container {
+  @apply min-h-screen bg-netflix-black;
+}
+
+.movie-detail-hero {
+  @apply relative pt-16;
+}
+
+.movie-detail-hero-image {
+  @apply relative h-96 md:h-[500px] lg:h-[600px] overflow-hidden;
+}
+
+.movie-detail-hero-background {
+  @apply absolute inset-0 w-full h-full object-cover;
+}
+
+.movie-detail-hero-overlay {
+  @apply absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent;
+}
+
+.movie-detail-hero-overlay::after {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent;
+}
+
+.movie-detail-hero-content {
+  @apply relative z-10 h-full flex items-end;
+}
+
+.movie-detail-info {
+  @apply py-16;
+}
+
+.movie-detail-sidebar {
+  @apply bg-netflix-darkGray rounded-lg p-6;
+}
+
+/* Search Page */
+.search-container {
+  @apply min-h-screen pt-24 bg-netflix-black;
+}
+
+.search-header {
+  @apply mb-8;
+}
+
+.search-input-container {
+  @apply relative flex-1 max-w-2xl;
+}
+
+.search-suggestions {
+  @apply absolute top-full left-0 right-0 mt-2 bg-netflix-darkGray;
+  @apply border border-netflix-gray rounded-lg shadow-2xl z-50 max-h-64 overflow-y-auto;
+}
+
+.search-suggestion-item {
+  @apply flex items-center justify-between px-3 py-2 hover:bg-netflix-gray rounded cursor-pointer group;
+}
+
+.search-filters-container {
+  @apply mt-6 p-6 bg-netflix-darkGray rounded-lg;
+}
+
+.search-filters-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4;
+}
+
+.search-results-header {
+  @apply flex items-center justify-between mb-6;
+}
+
+.search-active-filters {
+  @apply flex items-center space-x-2;
+}
+
+.search-filter-tag {
+  @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-netflix-red text-white;
+}
+
+.search-no-results {
+  @apply text-center py-16;
+}
+
+.search-default-state {
+  @apply text-center py-16;
+}
+
+.search-popular-terms {
+  @apply flex flex-wrap justify-center gap-2;
+}
+
+.search-popular-term {
+  @apply px-4 py-2 bg-netflix-darkGray hover:bg-netflix-gray rounded-lg;
+  @apply text-white transition-colors duration-200 text-sm;
+}
+
+/* Watch Page */
+.watch-container {
+  @apply min-h-screen bg-netflix-black;
+}
+
+.watch-header {
+  @apply absolute top-0 left-0 right-0 z-50 bg-gradient-to-b from-black/80 to-transparent;
+}
+
+.watch-controls {
+  @apply flex items-center justify-between p-4;
+}
+
+.watch-video-container {
+  @apply relative h-screen;
+}
+
+.watch-recommendations {
+  @apply absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/80 to-transparent p-6;
+}
+
+.watch-up-next {
+  @apply absolute bottom-20 right-6 w-80 bg-netflix-darkGray/95 backdrop-blur-sm rounded-lg p-4;
+}
+
+.watch-mobile-controls {
+  @apply md:hidden fixed bottom-4 left-4 right-4 z-40;
+}
+
+.watch-shortcuts-info {
+  @apply fixed bottom-4 left-4 bg-netflix-darkGray/95 backdrop-blur-sm rounded-lg p-3;
+  @apply opacity-0 pointer-events-none transition-opacity duration-300;
+}
+
+/* Profile Page */
+.profile-container {
+  @apply min-h-screen pt-24 bg-netflix-black;
+}
+
+.profile-header {
+  @apply mb-8;
+}
+
+.profile-avatar-container {
+  @apply relative;
+}
+
+.profile-avatar {
+  @apply w-24 h-24 bg-netflix-red rounded-full flex items-center justify-center;
+  @apply text-white text-3xl font-bold overflow-hidden;
+}
+
+.profile-avatar-upload {
+  @apply absolute bottom-0 right-0 w-8 h-8 bg-netflix-darkGray rounded-full;
+  @apply flex items-center justify-center cursor-pointer hover:bg-netflix-gray;
+  @apply transition-colors duration-200;
+}
+
+.profile-stats {
+  @apply grid grid-cols-1 md:grid-cols-3 gap-6 mb-8;
+}
+
+.profile-stat-card {
+  @apply bg-netflix-darkGray rounded-lg p-6 text-center;
+}
+
+.profile-tabs {
+  @apply mb-8;
+}
+
+.profile-tab-content {
+  @apply bg-netflix-darkGray rounded-lg p-8;
+}
+
+.profile-form {
+  @apply space-y-6;
+}
+
+.profile-form-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-6;
+}
+
+.profile-password-requirements {
+  @apply bg-netflix-gray rounded-lg p-4;
+}
+
+.profile-requirement {
+  @apply flex items-center space-x-2 text-sm;
+}
+
+.profile-requirement.met {
+  @apply text-green-400;
+}
+
+.profile-requirement.unmet {
+  @apply text-netflix-lightGray;
+}
+
+.profile-preferences {
+  @apply space-y-6;
+}
+
+.profile-preference-group {
+  @apply space-y-4;
+}
+
+.profile-preference-item {
+  @apply flex items-center justify-between py-4;
+}
+
+.profile-toggle {
+  @apply relative inline-flex items-center cursor-pointer;
+}
+
+.profile-toggle-input {
+  @apply sr-only peer;
+}
+
+.profile-toggle-slider {
+  @apply w-11 h-6 bg-netflix-gray peer-focus:outline-none rounded-full peer;
+  @apply peer-checked:after:translate-x-full peer-checked:after:border-white;
+  @apply after:content-[''] after:absolute after:top-[2px] after:left-[2px];
+  @apply after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all;
+  @apply peer-checked:bg-netflix-red;
+}
+
+.profile-data-actions {
+  @apply space-y-6;
+}
+
+.profile-data-action {
+  @apply flex items-center justify-between py-4 border-b border-netflix-gray;
+}
+
+/* Admin Pages */
+.admin-container {
+  @apply min-h-screen pt-16 bg-netflix-black;
+}
+
+.admin-sidebar {
+  @apply hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 md:pt-16;
+}
+
+.admin-sidebar-content {
+  @apply flex-1 flex flex-col min-h-0 bg-netflix-darkGray border-r border-netflix-gray;
+}
+
+.admin-nav {
+  @apply mt-5 flex-1 px-2 space-y-1;
+}
+
+.admin-nav-item {
+  @apply group flex items-center px-2 py-2 text-sm font-medium rounded-md;
+  @apply transition-colors duration-200;
+}
+
+.admin-nav-item.active {
+  @apply bg-netflix-red text-white;
+}
+
+.admin-nav-item.inactive {
+  @apply text-netflix-lightGray hover:bg-netflix-gray hover:text-white;
+}
+
+.admin-main {
+  @apply md:pl-64 flex flex-col flex-1;
+}
+
+.admin-dashboard {
+  @apply p-8;
+}
+
+.admin-stats-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8;
+}
+
+.admin-stat-card {
+  @apply bg-netflix-darkGray rounded-lg p-6;
+}
+
+.admin-quick-actions {
+  @apply bg-netflix-darkGray rounded-lg p-6;
+}
+
+.admin-quick-actions-grid {
+  @apply grid grid-cols-1 md:grid-cols-3 gap-4;
+}
+
+.admin-quick-action {
+  @apply flex items-center p-4 bg-netflix-gray rounded-lg;
+  @apply hover:bg-netflix-lightGray transition-colors duration-200;
+}
+
+/* Authentication Pages */
+.auth-container {
+  @apply min-h-screen flex items-center justify-center bg-netflix-black;
+}
+
+.auth-form-container {
+  @apply w-full max-w-md mx-auto;
+}
+
+.auth-form {
+  @apply bg-netflix-darkGray rounded-lg shadow-2xl p-8;
+}
+
+.auth-header {
+  @apply text-center mb-8;
+}
+
+.auth-logo {
+  @apply text-netflix-red text-2xl font-bold mb-4;
+}
+
+.auth-form-content {
+  @apply space-y-6;
+}
+
+.auth-form-grid {
+  @apply grid grid-cols-2 gap-4;
+}
+
+.auth-password-field {
+  @apply relative;
+}
+
+.auth-password-toggle {
+  @apply absolute right-3 top-1/2 transform -translate-y-1/2;
+  @apply text-netflix-lightGray hover:text-white transition-colors duration-200;
+}
+
+.auth-divider {
+  @apply my-8 flex items-center;
+}
+
+.auth-divider-line {
+  @apply flex-1 border-t border-netflix-gray;
+}
+
+.auth-divider-text {
+  @apply px-4 text-netflix-lightGray text-sm;
+}
+
+.auth-demo-accounts {
+  @apply mt-8 pt-6 border-t border-netflix-gray;
+}
+
+.auth-demo-account {
+  @apply bg-netflix-gray p-3 rounded mb-2;
+}
+
+.auth-footer {
+  @apply mt-8 text-center;
+}
+
+.auth-footer-link {
+  @apply text-netflix-red hover:text-red-300 transition-colors duration-200 font-medium;
+}
+
+/* Error Pages */
+.error-container {
+  @apply min-h-screen flex items-center justify-center bg-netflix-black;
+}
+
+.error-content {
+  @apply text-center max-w-md mx-auto p-6;
+}
+
+.error-code {
+  @apply text-6xl font-bold text-white mb-4;
+}
+
+.error-message {
+  @apply text-netflix-lightGray text-xl mb-8;
+}
+
+.error-actions {
+  @apply space-y-4;
+}
+
+/* Loading States */
+.loading-container {
+  @apply flex items-center justify-center;
+}
+
+.loading-fullscreen {
+  @apply min-h-screen bg-netflix-black;
+}
+
+.loading-content {
+  @apply space-y-4 text-center;
+}
+
+.loading-spinner {
+  @apply w-12 h-12 border-4 border-netflix-red border-t-transparent rounded-full animate-spin mx-auto;
+}
+
+.loading-text {
+  @apply text-white text-xl;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .home-hero-content {
+    @apply px-4;
+  }
+  
+  .movie-detail-hero-image {
+    @apply h-64;
+  }
+  
+  .auth-form {
+    @apply mx-4;
+  }
+  
+  .profile-form-grid {
+    @apply grid-cols-1;
+  }
+  
+  .admin-stats-grid {
+    @apply grid-cols-1;
+  }
+}
+
+@media (max-width: 768px) {
+  .browse-filters {
+    @apply flex-col items-start;
+  }
+  
+  .search-filters-grid {
+    @apply grid-cols-1;
+  }
+  
+  .profile-stats {
+    @apply grid-cols-1;
+  }
+}
+
+@media (max-width: 1024px) {
+  .admin-quick-actions-grid {
+    @apply grid-cols-1;
+  }
+}

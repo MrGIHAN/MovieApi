@@ -16,8 +16,8 @@ import MovieSearch from '../movie/MovieSearch';
 const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { isAuthenticated, user, isAdmin } = useAuth();
-  const { searchMovies, setSearchQuery, searchQuery } = useMovies();
+  const { isAuthenticated, user, isAdmin, isLoading } = useAuth();
+  const { searchMovies, setSearchQuery } = useMovies();
   
   const [isScrolled, setIsScrolled] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
@@ -42,33 +42,57 @@ const Header = () => {
     if (debouncedSearchQuery.trim()) {
       setSearchQuery(debouncedSearchQuery);
       if (location.pathname !== '/search') {
-        navigate('/search');
+        navigate(`/search?q=${encodeURIComponent(debouncedSearchQuery)}`);
       }
     }
   }, [debouncedSearchQuery, setSearchQuery, navigate, location.pathname]);
 
   // Close menus when clicking outside
   useEffect(() => {
-    const handleClickOutside = () => {
-      setShowUserMenu(false);
-      setShowMobileMenu(false);
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.user-menu') && !event.target.closest('.user-menu-trigger')) {
+        setShowUserMenu(false);
+      }
+      if (!event.target.closest('.mobile-menu') && !event.target.closest('.mobile-menu-trigger')) {
+        setShowMobileMenu(false);
+      }
     };
 
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
-  const navigation = [
-    { name: 'Home', href: '/', current: location.pathname === '/' },
-    { name: 'Browse', href: '/browse', current: location.pathname === '/browse' },
-    { name: 'My List', href: '/favorites', current: location.pathname === '/favorites', authRequired: true },
-    { name: 'Watch Later', href: '/watch-later', current: location.pathname === '/watch-later', authRequired: true },
-    { name: 'History', href: '/history', current: location.pathname === '/history', authRequired: true },
-  ];
+  // Close mobile menu on route change
+  useEffect(() => {
+    setShowMobileMenu(false);
+    setShowSearch(false);
+  }, [location.pathname]);
 
-  const adminNavigation = [
-    { name: 'Admin', href: '/admin', current: location.pathname.startsWith('/admin') },
-  ];
+  // Define navigation items based on auth state
+  const getNavigationItems = () => {
+    const baseItems = [
+      { name: 'Home', href: '/', current: location.pathname === '/' },
+      { name: 'Browse', href: '/browse', current: location.pathname === '/browse' },
+    ];
+
+    if (isAuthenticated && !isLoading) {
+      const userItems = [
+        { name: 'My List', href: '/favorites', current: location.pathname === '/favorites' },
+        { name: 'Watch Later', href: '/watch-later', current: location.pathname === '/watch-later' },
+        { name: 'History', href: '/history', current: location.pathname === '/history' },
+      ];
+
+      const adminItems = isAdmin() ? [
+        { name: 'Admin Panel', href: '/admin', current: location.pathname.startsWith('/admin'), isAdmin: true },
+      ] : [];
+
+      return [...baseItems, ...userItems, ...adminItems];
+    }
+
+    return baseItems;
+  };
+
+  const navigation = getNavigationItems();
 
   const handleSearchToggle = () => {
     setShowSearch(!showSearch);
@@ -87,6 +111,27 @@ const Header = () => {
     e.stopPropagation();
     setShowMobileMenu(!showMobileMenu);
   };
+
+  const handleNavItemClick = (href) => {
+    navigate(href);
+    setShowMobileMenu(false);
+  };
+
+  // Don't render anything while loading auth state
+  if (isLoading) {
+    return (
+      <header className="fixed top-0 left-0 right-0 z-50 bg-netflix-black/95 backdrop-blur-sm">
+        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <Link to="/" className="flex-shrink-0">
+              <span className="text-netflix-red text-2xl font-bold">NETFLIX</span>
+            </Link>
+            <div className="w-8 h-8 bg-netflix-gray rounded animate-pulse"></div>
+          </div>
+        </nav>
+      </header>
+    );
+  }
 
   return (
     <header 
@@ -107,25 +152,13 @@ const Header = () => {
             {/* Desktop Navigation */}
             <div className="hidden md:block ml-10">
               <div className="flex items-baseline space-x-8">
-                {navigation.map((item) => {
-                  if (item.authRequired && !isAuthenticated) return null;
-                  
-                  return (
-                    <Link
-                      key={item.name}
-                      to={item.href}
-                      className={`nav-link ${item.current ? 'active' : ''}`}
-                    >
-                      {item.name}
-                    </Link>
-                  );
-                })}
-                
-                {isAdmin && adminNavigation.map((item) => (
+                {navigation.map((item) => (
                   <Link
                     key={item.name}
                     to={item.href}
-                    className={`nav-link ${item.current ? 'active' : ''}`}
+                    className={`nav-link ${item.current ? 'active' : ''} ${
+                      item.isAdmin ? 'text-yellow-400 hover:text-yellow-300' : ''
+                    }`}
                   >
                     {item.name}
                   </Link>
@@ -166,10 +199,12 @@ const Header = () => {
               
               {/* Search Results Dropdown */}
               {showSearch && debouncedSearchQuery && (
-                <MovieSearch 
-                  query={debouncedSearchQuery}
-                  onClose={() => setShowSearch(false)}
-                />
+                <div className="absolute top-full right-0 mt-2 z-50">
+                  <MovieSearch 
+                    query={debouncedSearchQuery}
+                    onClose={() => setShowSearch(false)}
+                  />
+                </div>
               )}
             </div>
 
@@ -180,12 +215,12 @@ const Header = () => {
               </button>
             )}
 
-            {/* User Menu */}
+            {/* User Menu or Auth Buttons */}
             {isAuthenticated ? (
-              <div className="relative">
+              <div className="relative user-menu">
                 <button
                   onClick={handleUserMenuToggle}
-                  className="flex items-center space-x-2 text-netflix-lightGray hover:text-white transition-colors duration-200"
+                  className="flex items-center space-x-2 text-netflix-lightGray hover:text-white transition-colors duration-200 user-menu-trigger"
                 >
                   <div className="w-8 h-8 bg-netflix-red rounded flex items-center justify-center text-white text-sm font-medium">
                     {user?.firstName?.charAt(0)?.toUpperCase() || 'U'}
@@ -218,7 +253,7 @@ const Header = () => {
             <div className="md:hidden">
               <button
                 onClick={handleMobileMenuToggle}
-                className="text-netflix-lightGray hover:text-white transition-colors duration-200"
+                className="text-netflix-lightGray hover:text-white transition-colors duration-200 mobile-menu-trigger"
               >
                 {showMobileMenu ? (
                   <XMarkIcon className="h-6 w-6" />
@@ -232,59 +267,39 @@ const Header = () => {
 
         {/* Mobile Menu */}
         {showMobileMenu && (
-          <div className="md:hidden">
+          <div className="md:hidden mobile-menu">
             <div className="px-2 pt-2 pb-3 space-y-1 bg-netflix-darkGray rounded-lg mt-2">
-              {navigation.map((item) => {
-                if (item.authRequired && !isAuthenticated) return null;
-                
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
-                      item.current
-                        ? 'text-white bg-netflix-gray'
-                        : 'text-netflix-lightGray hover:text-white hover:bg-netflix-gray'
-                    }`}
-                    onClick={() => setShowMobileMenu(false)}
-                  >
-                    {item.name}
-                  </Link>
-                );
-              })}
-              
-              {isAdmin && adminNavigation.map((item) => (
-                <Link
+              {navigation.map((item) => (
+                <button
                   key={item.name}
-                  to={item.href}
-                  className={`block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
+                  onClick={() => handleNavItemClick(item.href)}
+                  className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
                     item.current
                       ? 'text-white bg-netflix-gray'
-                      : 'text-netflix-lightGray hover:text-white hover:bg-netflix-gray'
+                      : `text-netflix-lightGray hover:text-white hover:bg-netflix-gray ${
+                          item.isAdmin ? 'text-yellow-400 hover:text-yellow-300' : ''
+                        }`
                   }`}
-                  onClick={() => setShowMobileMenu(false)}
                 >
                   {item.name}
-                </Link>
+                </button>
               ))}
 
               {!isAuthenticated && (
                 <div className="pt-4 pb-3 border-t border-netflix-gray">
                   <div className="flex items-center px-3 space-x-3">
-                    <Link
-                      to="/login"
+                    <button
+                      onClick={() => handleNavItemClick('/login')}
                       className="flex-1 text-center py-2 px-4 bg-netflix-gray text-white rounded-lg hover:bg-netflix-lightGray transition-colors duration-200"
-                      onClick={() => setShowMobileMenu(false)}
                     >
                       Sign In
-                    </Link>
-                    <Link
-                      to="/register"
+                    </button>
+                    <button
+                      onClick={() => handleNavItemClick('/register')}
                       className="flex-1 text-center py-2 px-4 bg-netflix-red text-white rounded-lg hover:bg-red-700 transition-colors duration-200"
-                      onClick={() => setShowMobileMenu(false)}
                     >
                       Sign Up
-                    </Link>
+                    </button>
                   </div>
                 </div>
               )}

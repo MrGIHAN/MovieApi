@@ -1,18 +1,11 @@
 import { apiService } from './api';
-import { API_ENDPOINTS, TOAST_MESSAGES } from '../utils/constants';
+import { API_ENDPOINTS } from '../utils/constants';
 import { AuthStorage } from '../utils/storage';
 import toast from 'react-hot-toast';
 
-/**
- * Authentication service for handling user auth operations
- */
 export const authService = {
   /**
    * Login user
-   * @param {object} credentials - Login credentials
-   * @param {string} credentials.email - User email
-   * @param {string} credentials.password - User password
-   * @returns {Promise<object>} Auth response with user and tokens
    */
   async login(credentials) {
     try {
@@ -26,40 +19,32 @@ export const authService = {
       // Set token for future requests
       apiService.setAuthToken(token);
 
-      toast.success(TOAST_MESSAGES.SUCCESS.LOGIN);
+      toast.success('Welcome back!');
       return response.data;
     } catch (error) {
-      const message = error.response?.data?.message || TOAST_MESSAGES.ERROR.LOGIN_FAILED;
+      const message = error.response?.data?.message || 'Login failed';
       toast.error(message);
-      throw error;
+      throw new Error(message);
     }
   },
 
   /**
    * Register new user
-   * @param {object} userData - User registration data
-   * @param {string} userData.email - User email
-   * @param {string} userData.password - User password
-   * @param {string} userData.firstName - User first name
-   * @param {string} userData.lastName - User last name
-   * @returns {Promise<object>} Registration response
    */
   async register(userData) {
     try {
       const response = await apiService.post(API_ENDPOINTS.AUTH.REGISTER, userData);
-      toast.success(TOAST_MESSAGES.SUCCESS.REGISTER);
+      toast.success('Account created successfully!');
       return response.data;
     } catch (error) {
-      const message = error.response?.data?.message || TOAST_MESSAGES.ERROR.REGISTER_FAILED;
+      const message = error.response?.data?.message || 'Registration failed';
       toast.error(message);
-      throw error;
+      throw new Error(message);
     }
   },
 
   /**
    * Register admin user
-   * @param {object} adminData - Admin registration data
-   * @returns {Promise<object>} Registration response
    */
   async registerAdmin(adminData) {
     try {
@@ -69,54 +54,42 @@ export const authService = {
     } catch (error) {
       const message = error.response?.data?.message || 'Admin registration failed';
       toast.error(message);
-      throw error;
+      throw new Error(message);
     }
   },
 
   /**
    * Logout user
-   * @returns {Promise<void>}
    */
   async logout() {
     try {
-      // Call backend logout endpoint
       await apiService.post(API_ENDPOINTS.AUTH.LOGOUT);
     } catch (error) {
-      // Continue with logout even if backend call fails
       console.error('Logout error:', error);
     } finally {
-      // Clear local auth data
       AuthStorage.clearAuth();
       apiService.clearAuthToken();
-      toast.success(TOAST_MESSAGES.SUCCESS.LOGOUT);
+      toast.success('Logged out successfully');
     }
   },
 
   /**
    * Refresh authentication token
-   * @returns {Promise<object>} New auth tokens
    */
-  async refreshToken() {
+  async refreshToken(refreshToken) {
     try {
-      const refreshToken = AuthStorage.getRefreshToken();
-      if (!refreshToken) {
-        throw new Error('No refresh token available');
-      }
-
       const response = await apiService.post(API_ENDPOINTS.AUTH.REFRESH, {
         refreshToken
       });
 
       const { token, refreshToken: newRefreshToken, user } = response.data;
 
-      // Update stored tokens
       AuthStorage.saveTokens(token, newRefreshToken);
       AuthStorage.saveUser(user);
       apiService.setAuthToken(token);
 
       return response.data;
     } catch (error) {
-      // Refresh failed, clear auth data
       AuthStorage.clearAuth();
       apiService.clearAuthToken();
       throw error;
@@ -125,17 +98,13 @@ export const authService = {
 
   /**
    * Validate current token
-   * @returns {Promise<boolean>} Token validity
    */
-  async validateToken() {
+  async validateToken(token) {
     try {
-      const token = AuthStorage.getToken();
       if (!token) return false;
-
+      
       const response = await apiService.get(API_ENDPOINTS.AUTH.VALIDATE, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       return response.data === true;
@@ -146,7 +115,6 @@ export const authService = {
 
   /**
    * Get current authenticated user
-   * @returns {object|null} Current user object
    */
   getCurrentUser() {
     return AuthStorage.getUser();
@@ -154,7 +122,6 @@ export const authService = {
 
   /**
    * Check if user is authenticated
-   * @returns {boolean} Authentication status
    */
   isAuthenticated() {
     return AuthStorage.isAuthenticated();
@@ -162,7 +129,6 @@ export const authService = {
 
   /**
    * Check if current user is admin
-   * @returns {boolean} Admin status
    */
   isAdmin() {
     const user = this.getCurrentUser();
@@ -170,41 +136,7 @@ export const authService = {
   },
 
   /**
-   * Check if current user is regular user
-   * @returns {boolean} User status
-   */
-  isUser() {
-    const user = this.getCurrentUser();
-    return user?.role === 'USER';
-  },
-
-  /**
-   * Get user's full name
-   * @returns {string} Full name
-   */
-  getUserFullName() {
-    const user = this.getCurrentUser();
-    if (!user) return '';
-    return `${user.firstName} ${user.lastName}`.trim();
-  },
-
-  /**
-   * Get user's initials
-   * @returns {string} User initials
-   */
-  getUserInitials() {
-    const user = this.getCurrentUser();
-    if (!user) return 'U';
-    
-    const firstInitial = user.firstName?.charAt(0).toUpperCase() || '';
-    const lastInitial = user.lastName?.charAt(0).toUpperCase() || '';
-    
-    return firstInitial + lastInitial || 'U';
-  },
-
-  /**
    * Auto-login with stored token
-   * @returns {Promise<boolean>} Login success status
    */
   async autoLogin() {
     const token = AuthStorage.getToken();
@@ -215,82 +147,28 @@ export const authService = {
     }
 
     try {
-      // Validate stored token
-      const isValid = await this.validateToken();
+      const isValid = await this.validateToken(token);
       
       if (isValid) {
         apiService.setAuthToken(token);
         return true;
       } else {
         // Try to refresh token
-        try {
-          await this.refreshToken();
-          return true;
-        } catch (refreshError) {
-          // Refresh failed, clear auth data
-          AuthStorage.clearAuth();
-          return false;
+        const refreshToken = AuthStorage.getRefreshToken();
+        if (refreshToken) {
+          try {
+            await this.refreshToken(refreshToken);
+            return true;
+          } catch (refreshError) {
+            AuthStorage.clearAuth();
+            return false;
+          }
         }
+        return false;
       }
     } catch (error) {
       AuthStorage.clearAuth();
       return false;
-    }
-  },
-
-  /**
-   * Setup automatic token refresh
-   * @param {Function} onTokenExpired - Callback for token expiration
-   */
-  setupTokenRefresh(onTokenExpired) {
-    // Check token validity every 5 minutes
-    const checkInterval = 5 * 60 * 1000; // 5 minutes
-
-    const tokenCheckInterval = setInterval(async () => {
-      if (this.isAuthenticated()) {
-        try {
-          const isValid = await this.validateToken();
-          if (!isValid) {
-            // Try to refresh
-            await this.refreshToken();
-          }
-        } catch (error) {
-          // Token refresh failed
-          clearInterval(tokenCheckInterval);
-          AuthStorage.clearAuth();
-          apiService.clearAuthToken();
-          
-          if (onTokenExpired) {
-            onTokenExpired();
-          }
-        }
-      } else {
-        // Not authenticated, stop checking
-        clearInterval(tokenCheckInterval);
-      }
-    }, checkInterval);
-
-    return tokenCheckInterval;
-  },
-
-  /**
-   * Handle authentication errors
-   * @param {Error} error - Authentication error
-   */
-  handleAuthError(error) {
-    if (error.response?.status === 401) {
-      // Unauthorized - clear auth and redirect to login
-      AuthStorage.clearAuth();
-      apiService.clearAuthToken();
-      toast.error(TOAST_MESSAGES.ERROR.UNAUTHORIZED);
-      window.location.href = '/login';
-    } else if (error.response?.status === 403) {
-      // Forbidden - user doesn't have permission
-      toast.error(TOAST_MESSAGES.ERROR.FORBIDDEN);
-    } else {
-      // Other auth errors
-      const message = error.response?.data?.message || TOAST_MESSAGES.ERROR.GENERAL;
-      toast.error(message);
     }
   }
 };
