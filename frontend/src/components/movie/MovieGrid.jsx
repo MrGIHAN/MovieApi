@@ -4,7 +4,7 @@ import { SkeletonLoader } from '../common/Loader';
 import { AdjustmentsHorizontalIcon, Squares2X2Icon, ListBulletIcon } from '@heroicons/react/24/outline';
 
 const MovieGrid = ({
-  movies = [],
+  movies,
   isLoading = false,
   title,
   subtitle,
@@ -14,6 +14,8 @@ const MovieGrid = ({
   emptyMessage = 'No movies found',
   className = '',
 }) => {
+  // Ensure movies is always an array
+  const safeMovies = Array.isArray(movies) ? movies : [];
   const [layout, setLayout] = useState('grid'); // 'grid' or 'list'
   const [sortBy, setSortBy] = useState('title');
   const [sortOrder, setSortOrder] = useState('asc');
@@ -22,7 +24,7 @@ const MovieGrid = ({
 
   // Update filtered movies when movies or filters change
   useEffect(() => {
-    let filtered = [...movies];
+    let filtered = [...safeMovies];
 
     // Genre filter
     if (genreFilter) {
@@ -51,10 +53,10 @@ const MovieGrid = ({
     });
 
     setFilteredMovies(filtered);
-  }, [movies, genreFilter, sortBy, sortOrder]);
+  }, [safeMovies, genreFilter, sortBy, sortOrder]);
 
   // Get unique genres from movies
-  const genres = [...new Set(movies.map(movie => movie.genre).filter(Boolean))];
+  const genres = [...new Set(safeMovies.map(movie => movie.genre).filter(Boolean))];
 
   const handleSortChange = (field) => {
     if (sortBy === field) {
@@ -252,7 +254,7 @@ const MovieGrid = ({
       {/* Results count */}
       {filteredMovies.length > 0 && (
         <div className="text-center text-netflix-lightGray text-sm">
-          Showing {filteredMovies.length} of {movies.length} movies
+          Showing {filteredMovies.length} of {safeMovies.length} movies
         </div>
       )}
     </div>

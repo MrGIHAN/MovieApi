@@ -40,8 +40,16 @@ const MovieDetail = () => {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   useEffect(() => {
+    console.log('MovieDetail: ID from URL params:', id, 'Type:', typeof id);
     if (id) {
-      fetchMovieById(id);
+      // Convert string ID to number if needed
+      const movieId = parseInt(id, 10);
+      console.log('MovieDetail: Converted movie ID:', movieId, 'Type:', typeof movieId);
+      if (!isNaN(movieId)) {
+        fetchMovieById(movieId);
+      } else {
+        console.error('Invalid movie ID:', id);
+      }
     }
   }, [id, fetchMovieById]);
 

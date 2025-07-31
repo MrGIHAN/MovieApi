@@ -20,13 +20,14 @@ import Watch from './pages/Watch';
 import Search from './pages/Search';
 import Profile from './pages/Profile';
 import Admin from './pages/Admin';
+import Test from './pages/Test';
 
 // Auth Components
 import LoginForm from './components/auth/LoginForm';
 import RegisterForm from './components/auth/RegisterForm';
 
 // User Components
-import Favorites from './components/user/ Favorites';
+import Favorites from './components/user/Favorites';
 import WatchLater from './components/user/WatchLater';
 import WatchHistory from './components/user/WatchHistory';
 
@@ -74,6 +75,7 @@ function App() {
                   <Route path="/movie/:id" element={<MovieDetail />} />
                   <Route path="/watch/:id" element={<Watch />} />
                   <Route path="/search" element={<Search />} />
+                  <Route path="/test" element={<Test />} />
 
                   {/* Guest Only Routes (redirect if authenticated) */}
                   <Route

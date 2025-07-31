@@ -13,10 +13,15 @@ export const movieService = {
    */
   async getAllMovies() {
     try {
+      console.log('Making API call to:', API_ENDPOINTS.MOVIES.BASE);
       const response = await apiService.get(API_ENDPOINTS.MOVIES.BASE);
+      console.log('API response:', response);
       return response.data;
     } catch (error) {
       console.error('Error fetching movies:', error);
+      console.error('Error response:', error.response);
+      console.error('Error request:', error.request);
+      console.error('Error config:', error.config);
       throw error;
     }
   },
@@ -28,10 +33,53 @@ export const movieService = {
    */
   async getMovieById(movieId) {
     try {
+      console.log('Fetching movie with ID:', movieId, 'Type:', typeof movieId);
+      console.log('API endpoint:', API_ENDPOINTS.MOVIES.BY_ID(movieId));
       const response = await apiService.get(API_ENDPOINTS.MOVIES.BY_ID(movieId));
+      console.log('Movie response status:', response.status);
+      console.log('Movie response data type:', typeof response.data);
+      
+      // Handle circular reference issue by creating a clean copy
+      if (response.data && typeof response.data === 'object') {
+        try {
+          // Try to create a clean copy by stringifying and parsing
+          const cleanData = JSON.parse(JSON.stringify(response.data));
+          return cleanData;
+        } catch (circularError) {
+          console.warn('Circular reference detected, attempting to clean data manually');
+          // Try to extract basic movie data manually
+          const movie = response.data;
+          const cleanMovie = {
+            id: movie.id,
+            title: movie.title,
+            description: movie.description,
+            releaseYear: movie.releaseYear,
+            duration: movie.duration,
+            genre: movie.genre,
+            imdbRating: movie.imdbRating,
+            posterUrl: movie.posterUrl,
+            thumbnailUrl: movie.thumbnailUrl,
+            videoUrl: movie.videoUrl,
+            trailerUrl: movie.trailerUrl,
+            viewCount: movie.viewCount,
+            featured: movie.featured,
+            trending: movie.trending,
+            createdAt: movie.createdAt,
+            updatedAt: movie.updatedAt
+          };
+          return cleanMovie;
+        }
+      }
+      
       return response.data;
     } catch (error) {
       console.error('Error fetching movie:', error);
+      console.error('Error details:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+        config: error.config
+      });
       toast.error('Movie not found');
       throw error;
     }

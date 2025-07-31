@@ -69,6 +69,55 @@ public class AuthController {
         }
     }
 
+    // Temporary endpoint for testing - create admin if none exists
+    @PostMapping("/setup-admin")
+    public ResponseEntity<?> setupAdmin() {
+        try {
+            if (userService.isAdminExists()) {
+                return ResponseEntity.ok(new MessageResponseDto("Admin already exists"));
+            }
+
+            UserRequestDto adminRequest = new UserRequestDto();
+            adminRequest.setEmail("admin@netflix.com");
+            adminRequest.setPassword("admin123");
+            adminRequest.setFirstName("Admin");
+            adminRequest.setLastName("User");
+
+            User admin = userService.registerAdmin(adminRequest);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(new MessageResponseDto("Admin created successfully with email: " + admin.getEmail()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                    .body(new MessageResponseDto(e.getMessage()));
+        }
+    }
+
+    // Development endpoint to create a test admin
+    @PostMapping("/create-test-admin")
+    public ResponseEntity<?> createTestAdmin() {
+        try {
+            // Delete existing admin if any
+            userService.deleteAdminIfExists();
+            
+            UserRequestDto adminRequest = new UserRequestDto();
+            adminRequest.setEmail("admin@test.com");
+            adminRequest.setPassword("admin123");
+            adminRequest.setFirstName("Test");
+            adminRequest.setLastName("Admin");
+
+            User admin = userService.registerAdmin(adminRequest);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(Map.of(
+                        "message", "Test admin created successfully",
+                        "email", admin.getEmail(),
+                        "password", "admin123"
+                    ));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                    .body(new MessageResponseDto(e.getMessage()));
+        }
+    }
+
     @GetMapping("/admin-exists")
     public ResponseEntity<?> checkAdminExists() {
         try {

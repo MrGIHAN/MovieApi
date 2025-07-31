@@ -1,6 +1,7 @@
 package dev.gihan.movieapi.controller;
 
 import dev.gihan.movieapi.dto.requestDto.MovieRequestDto;
+import dev.gihan.movieapi.dto.responseDto.MovieResponseDto;
 import dev.gihan.movieapi.dto.responseDto.MessageResponseDto;
 import dev.gihan.movieapi.exception.NotFoundException;
 import dev.gihan.movieapi.model.Movie;
@@ -32,13 +33,13 @@ public class MovieController {
 
     // ✅ Anyone can see all movies - NO AUTH REQUIRED
     @GetMapping
-    public ResponseEntity<List<Movie>> getAllMovies() {
+    public ResponseEntity<List<MovieResponseDto>> getAllMovies() {
         return ResponseEntity.ok(movieService.getAllMovies());
     }
 
     // ✅ Anyone can see a single movie by ID - NO AUTH REQUIRED
     @GetMapping("/{id}")
-    public ResponseEntity<Movie> getMovieById(@PathVariable Long id) {
+    public ResponseEntity<MovieResponseDto> getMovieById(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(movieService.getMovieById(id));
         } catch (NotFoundException e) {
@@ -48,21 +49,21 @@ public class MovieController {
 
     // ✅ Anyone can see movies by genre - NO AUTH REQUIRED
     @GetMapping("/genre/{genre}")
-    public ResponseEntity<List<Movie>> getMoviesByGenre(@PathVariable String genre) {
+    public ResponseEntity<List<MovieResponseDto>> getMoviesByGenre(@PathVariable String genre) {
         return ResponseEntity.ok(movieService.getMoviesByGenre(genre));
     }
 
     // 🔒 Only ADMIN can create movies
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Movie> createMovie(@RequestBody MovieRequestDto request) {
+    public ResponseEntity<MovieResponseDto> createMovie(@RequestBody MovieRequestDto request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(movieService.createMovie(request));
     }
 
     // 🔒 Only ADMIN can update movies
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Movie> updateMovie(
+    public ResponseEntity<MovieResponseDto> updateMovie(
             @PathVariable Long id,
             @RequestBody MovieRequestDto request) {
         try {
@@ -85,7 +86,7 @@ public class MovieController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<Movie>> searchMovies(
+    public ResponseEntity<List<MovieResponseDto>> searchMovies(
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String genre,
             @RequestParam(required = false) Integer year,

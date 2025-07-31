@@ -14,6 +14,8 @@ const api = axios.create({
   },
 });
 
+console.log('API Base URL:', API_BASE_URL);
+
 /**
  * Request interceptor to add auth token
  */
@@ -34,8 +36,25 @@ api.interceptors.request.use(
  * Response interceptor to handle common errors and token refresh
  */
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('API Response interceptor - Success:', response.status, response.config.url);
+    
+    // Handle circular reference issues in the response
+    if (response.data && typeof response.data === 'object') {
+      try {
+        // Test if the response can be serialized
+        JSON.stringify(response.data);
+      } catch (circularError) {
+        console.warn('Circular reference detected in response, attempting to clean');
+        // If we can't serialize, the response has circular references
+        // We'll let the individual service handle this
+      }
+    }
+    
+    return response;
+  },
   async (error) => {
+    console.log('API Response interceptor - Error:', error.response?.status, error.config?.url);
     const originalRequest = error.config;
 
     // Handle 401 errors (unauthorized)
@@ -84,7 +103,13 @@ api.interceptors.response.use(
  * API service methods
  */
 export const apiService = {
-  get: (url, config = {}) => api.get(url, config),
+  get: (url, config = {}) => {
+    console.log('API GET request:', url);
+    return api.get(url, config).catch(error => {
+      console.error('API GET error for URL:', url, error);
+      throw error;
+    });
+  },
   post: (url, data = {}, config = {}) => api.post(url, data, config),
   put: (url, data = {}, config = {}) => api.put(url, data, config),
   delete: (url, config = {}) => api.delete(url, config),

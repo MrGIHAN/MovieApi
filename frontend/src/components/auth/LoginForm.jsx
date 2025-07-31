@@ -172,10 +172,26 @@ const LoginForm = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="btn btn-primary w-full"
+              className="w-full bg-netflix-red text-white py-3 px-4 rounded-md font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Signing In...' : 'Sign In'}
             </button>
+
+            {/* Test Admin Login Button - Development Only */}
+            {process.env.NODE_ENV === 'development' && (
+              <button
+                type="button"
+                onClick={() => {
+                  setFormData({
+                    email: 'admin@test.com',
+                    password: 'admin123'
+                  });
+                }}
+                className="w-full mt-2 bg-gray-600 text-white py-2 px-4 rounded-md font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors duration-200"
+              >
+                Load Test Admin Credentials
+              </button>
+            )}
           </form>
 
           {/* Demo Accounts */}
