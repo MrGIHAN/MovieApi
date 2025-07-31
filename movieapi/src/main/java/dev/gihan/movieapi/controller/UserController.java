@@ -52,15 +52,15 @@ public class UserController {
         }
     }
 
-//    @PostMapping("/login")
-//    public ResponseEntity<?> login(@RequestBody LoginRequestDto dto) {
-//        try {
-//            UserResponseDto user = userService.loginUser(dto.getEmail(), dto.getPassword());
-//            return ResponseEntity.ok(user);
-//        } catch (NotFoundException e) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", e.getMessage()));
-//        }
-//    }
+//   @PostMapping("/login")
+//   public ResponseEntity<?> login(@RequestBody LoginRequestDto dto) {
+//       try {
+//           UserResponseDto user = userService.loginUser(dto.getEmail(), dto.getPassword());
+//           return ResponseEntity.ok(user);
+//       } catch (NotFoundException e) {
+//           return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", e.getMessage()));
+//       }
+//   }
 
     @GetMapping("/me")
     public ResponseEntity<?> getLoggedInUser() {
@@ -186,7 +186,7 @@ public class UserController {
         String email = getCurrentUserEmail();
         if (email == null) return unauthorized();
         User user = userService.findByEmail(email);
-        Movie movie = movieService.getMovieById(movieId);
+        Movie movie = movieService.getMovieEntityById(movieId);
         if (movie == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Movie not found"));
         return action.apply(user, movie);
     }

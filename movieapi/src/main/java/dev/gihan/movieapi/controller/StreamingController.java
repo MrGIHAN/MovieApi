@@ -46,7 +46,7 @@ public class StreamingController {
             HttpServletResponse response) {
 
         try {
-            Movie movie = movieService.getMovieById(movieId);
+            Movie movie = movieService.getMovieEntityById(movieId);
 
             // Track streaming session
             String sessionId = UUID.randomUUID().toString();

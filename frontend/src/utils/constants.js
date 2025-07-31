@@ -1,68 +1,68 @@
 // API Base URL
-export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8081/api';
+export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8081';
 
 // API Endpoints
 export const API_ENDPOINTS = {
   // Auth endpoints
   AUTH: {
-    LOGIN: '/auth/login',
-    REGISTER: '/auth/register',
-    REGISTER_ADMIN: '/auth/register-admin',
-    REFRESH: '/auth/refresh',
-    LOGOUT: '/auth/logout',
-    VALIDATE: '/auth/validate',
+    LOGIN: '/api/auth/login',
+    REGISTER: '/api/auth/register',
+    REGISTER_ADMIN: '/api/auth/register-admin',
+    REFRESH: '/api/auth/refresh',
+    LOGOUT: '/api/auth/logout',
+    VALIDATE: '/api/auth/validate',
   },
   
   // Movie endpoints
   MOVIES: {
-    BASE: '/movies',
-    BY_ID: (id) => `/movies/${id}`,
-    BY_GENRE: (genre) => `/movies/genre/${genre}`,
-    SEARCH: '/movies/search',
-    RECOMMENDATIONS: '/movies/recommendations',
+    BASE: '/api/movies',
+    BY_ID: (id) => `/api/movies/${id}`,
+    BY_GENRE: (genre) => `/api/movies/genre/${genre}`,
+    SEARCH: '/api/movies/search',
+    RECOMMENDATIONS: '/api/movies/recommendations',
   },
   
   // User endpoints
   USERS: {
-    ME: '/users/me',
-    WATCHLIST: '/users/watchlist',
-    FAVORITES: '/users/favorites',
-    WATCH_LATER: '/users/watchlater',
-    HISTORY: '/users/history',
-    PREFERENCES: '/users/preferences',
-    ADD_TO_WATCHLIST: (movieId) => `/users/watchlist/${movieId}`,
-    ADD_TO_FAVORITES: (movieId) => `/users/favorites/${movieId}`,
-    ADD_TO_WATCH_LATER: (movieId) => `/users/watchlater/${movieId}`,
-    UPDATE_HISTORY: (movieId) => `/users/history/${movieId}`,
+    ME: '/api/users/me',
+    WATCHLIST: '/api/users/watchlist',
+    FAVORITES: '/api/users/favorites',
+    WATCH_LATER: '/api/users/watchlater',
+    HISTORY: '/api/users/history',
+    PREFERENCES: '/api/users/preferences',
+    ADD_TO_WATCHLIST: (movieId) => `/api/users/watchlist/${movieId}`,
+    ADD_TO_FAVORITES: (movieId) => `/api/users/favorites/${movieId}`,
+    ADD_TO_WATCH_LATER: (movieId) => `/api/users/watchlater/${movieId}`,
+    UPDATE_HISTORY: (movieId) => `/api/users/history/${movieId}`,
   },
   
   // Streaming endpoints
   STREAMING: {
-    STREAM: (movieId) => `/stream/${movieId}`,
-    PROGRESS: '/stream/progress',
-    COMPLETE: (movieId) => `/stream/complete/${movieId}`,
+    STREAM: (movieId) => `/api/stream/${movieId}`,
+    PROGRESS: '/api/stream/progress',
+    COMPLETE: (movieId) => `/api/stream/complete/${movieId}`,
   },
   
   // Comments endpoints
   COMMENTS: {
-    BY_MOVIE: (movieId) => `/comments/movie/${movieId}`,
-    ADD: (movieId) => `/comments/movie/${movieId}`,
-    UPDATE: (commentId) => `/comments/${commentId}`,
-    DELETE: (commentId) => `/comments/${commentId}`,
+    BY_MOVIE: (movieId) => `/api/comments/movie/${movieId}`,
+    ADD: (movieId) => `/api/comments/movie/${movieId}`,
+    UPDATE: (commentId) => `/api/comments/${commentId}`,
+    DELETE: (commentId) => `/api/comments/${commentId}`,
   },
   
-  // Admin endpoints
+  // Admin endpoints - Updated to match backend controller
   ADMIN: {
-    STATS: '/admin/stats',
-    USERS: '/admin/users',
-    MOVIES: '/admin/movies',
-    UPLOAD_VIDEO: '/admin/upload/video',
-    UPLOAD_IMAGE: '/admin/upload/image',
-    DELETE_USER: (userId) => `/admin/users/${userId}`,
-    UPDATE_MOVIE: (movieId) => `/admin/movies/${movieId}`,
-    DELETE_MOVIE: (movieId) => `/admin/movies/${movieId}`,
-    TRENDING: '/admin/movies/trending',
-    TOGGLE_FEATURED: (movieId) => `/admin/movies/${movieId}/feature`,
+    STATS: '/api/admin/stats',
+    USERS: '/api/admin/users',
+    MOVIES: '/api/admin/movies',
+    UPLOAD_VIDEO: '/api/admin/upload/video',
+    UPLOAD_IMAGE: '/api/admin/upload/image',
+    DELETE_USER: (userId) => `/api/admin/users/${userId}`,
+    UPDATE_MOVIE: (movieId) => `/api/admin/movies/${movieId}`,
+    DELETE_MOVIE: (movieId) => `/api/admin/movies/${movieId}`,
+    TRENDING: '/api/admin/movies/trending',
+    TOGGLE_FEATURED: (movieId) => `/api/admin/movies/${movieId}/feature`,
   },
 };
 

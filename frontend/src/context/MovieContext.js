@@ -6,17 +6,18 @@ import {
   watchLaterService, 
   watchHistoryService 
 } from '../services/userService';
+import { API_BASE_URL } from '../utils/constants';
 
-// Initial state
+// Initial state with safe defaults
 const initialState = {
-  // Movies
+  // Movies - Always initialize as arrays
   movies: [],
   currentMovie: null,
   recommendations: [],
   searchResults: [],
   genres: [],
   
-  // User lists
+  // User lists - Always initialize as arrays
   favorites: [],
   watchlist: [],
   watchLater: [],
@@ -96,7 +97,19 @@ const ActionTypes = {
   SET_PAGINATION: 'SET_PAGINATION',
 };
 
-// Reducer
+// Helper function to ensure data is an array
+const ensureArray = (data) => {
+  if (Array.isArray(data)) return data;
+  if (data === null || data === undefined) return [];
+  if (typeof data === 'object' && data.length !== undefined) {
+    // Array-like object
+    return Array.from(data);
+  }
+  // Single item, wrap in array
+  return [data];
+};
+
+// Reducer with array safety
 const movieReducer = (state, action) => {
   switch (action.type) {
     case ActionTypes.SET_LOADING:
@@ -112,21 +125,31 @@ const movieReducer = (state, action) => {
       return { ...state, isLoadingUserLists: action.payload };
       
     case ActionTypes.SET_MOVIES:
-      return { ...state, movies: action.payload, isLoading: false };
+      return { 
+        ...state, 
+        movies: ensureArray(action.payload), 
+        isLoading: false 
+      };
       
     case ActionTypes.SET_CURRENT_MOVIE:
       return { ...state, currentMovie: action.payload, isLoadingMovie: false };
       
     case ActionTypes.SET_RECOMMENDATIONS:
-      return { ...state, recommendations: action.payload };
+      return { 
+        ...state, 
+        recommendations: ensureArray(action.payload) 
+      };
       
     case ActionTypes.ADD_MOVIE:
-      return { ...state, movies: [action.payload, ...state.movies] };
+      return { 
+        ...state, 
+        movies: [action.payload, ...ensureArray(state.movies)] 
+      };
       
     case ActionTypes.UPDATE_MOVIE:
       return {
         ...state,
-        movies: state.movies.map(movie =>
+        movies: ensureArray(state.movies).map(movie =>
           movie.id === action.payload.id ? action.payload : movie
         ),
         currentMovie: state.currentMovie?.id === action.payload.id 
@@ -137,14 +160,18 @@ const movieReducer = (state, action) => {
     case ActionTypes.REMOVE_MOVIE:
       return {
         ...state,
-        movies: state.movies.filter(movie => movie.id !== action.payload),
+        movies: ensureArray(state.movies).filter(movie => movie.id !== action.payload),
         currentMovie: state.currentMovie?.id === action.payload 
           ? null 
           : state.currentMovie
       };
       
     case ActionTypes.SET_SEARCH_RESULTS:
-      return { ...state, searchResults: action.payload, isLoading: false };
+      return { 
+        ...state, 
+        searchResults: ensureArray(action.payload), 
+        isLoading: false 
+      };
       
     case ActionTypes.SET_SEARCH_QUERY:
       return { ...state, searchQuery: action.payload };
@@ -164,30 +191,52 @@ const movieReducer = (state, action) => {
       };
       
     case ActionTypes.SET_FAVORITES:
-      return { ...state, favorites: action.payload };
+      return { 
+        ...state, 
+        favorites: ensureArray(action.payload) 
+      };
       
     case ActionTypes.SET_WATCHLIST:
-      return { ...state, watchlist: action.payload };
+      return { 
+        ...state, 
+        watchlist: ensureArray(action.payload) 
+      };
       
     case ActionTypes.SET_WATCH_LATER:
-      return { ...state, watchLater: action.payload };
+      return { 
+        ...state, 
+        watchLater: ensureArray(action.payload) 
+      };
       
     case ActionTypes.SET_WATCH_HISTORY:
-      return { ...state, watchHistory: action.payload };
+      return { 
+        ...state, 
+        watchHistory: ensureArray(action.payload) 
+      };
       
     case ActionTypes.SET_CONTINUE_WATCHING:
-      return { ...state, continueWatching: action.payload };
+      return { 
+        ...state, 
+        continueWatching: ensureArray(action.payload) 
+      };
       
     case ActionTypes.SET_COMMENTS:
-      return { ...state, comments: action.payload, isLoadingComments: false };
+      return { 
+        ...state, 
+        comments: ensureArray(action.payload), 
+        isLoadingComments: false 
+      };
       
     case ActionTypes.ADD_COMMENT:
-      return { ...state, comments: [action.payload, ...state.comments] };
+      return { 
+        ...state, 
+        comments: [action.payload, ...ensureArray(state.comments)] 
+      };
       
     case ActionTypes.UPDATE_COMMENT:
       return {
         ...state,
-        comments: state.comments.map(comment =>
+        comments: ensureArray(state.comments).map(comment =>
           comment.id === action.payload.id ? action.payload : comment
         )
       };
@@ -195,7 +244,7 @@ const movieReducer = (state, action) => {
     case ActionTypes.REMOVE_COMMENT:
       return {
         ...state,
-        comments: state.comments.filter(comment => comment.id !== action.payload)
+        comments: ensureArray(state.comments).filter(comment => comment.id !== action.payload)
       };
       
     case ActionTypes.SET_ERROR:
@@ -234,14 +283,33 @@ export const MovieProvider = ({ children }) => {
     });
   }, []);
 
-  // Movie actions
+  // Movie actions with array safety
   const fetchMovies = useCallback(async () => {
     dispatch({ type: ActionTypes.SET_LOADING, payload: true });
     try {
+      console.log('Fetching movies from:', `${API_BASE_URL}/api/movies`);
       const movies = await movieService.getAllMovies();
-      dispatch({ type: ActionTypes.SET_MOVIES, payload: movies });
+      console.log('Movies fetched:', movies);
+      console.log('Movies type:', typeof movies);
+      console.log('Movies is array:', Array.isArray(movies));
+      // Ensure we always dispatch an array
+      const safeMovies = ensureArray(movies);
+      console.log('Safe movies:', safeMovies);
+      dispatch({ 
+        type: ActionTypes.SET_MOVIES, 
+        payload: safeMovies
+      });
     } catch (error) {
+      console.error('Error fetching movies:', error);
+      console.error('Error details:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+        config: error.config
+      });
       handleError(error);
+      // Dispatch empty array on error to prevent map errors
+      dispatch({ type: ActionTypes.SET_MOVIES, payload: [] });
     }
   }, [handleError]);
 
@@ -261,31 +329,44 @@ export const MovieProvider = ({ children }) => {
     dispatch({ type: ActionTypes.SET_LOADING, payload: true });
     try {
       const movies = await movieService.getMoviesByGenre(genre);
-      dispatch({ type: ActionTypes.SET_MOVIES, payload: movies });
+      dispatch({ 
+        type: ActionTypes.SET_MOVIES, 
+        payload: ensureArray(movies) 
+      });
     } catch (error) {
       handleError(error);
+      dispatch({ type: ActionTypes.SET_MOVIES, payload: [] });
     }
   }, [handleError]);
 
   const fetchRecommendations = useCallback(async () => {
     try {
       const recommendations = await movieService.getRecommendations();
-      dispatch({ type: ActionTypes.SET_RECOMMENDATIONS, payload: recommendations });
+      dispatch({ 
+        type: ActionTypes.SET_RECOMMENDATIONS, 
+        payload: ensureArray(recommendations) 
+      });
     } catch (error) {
-      // Don't show error for recommendations
+      // Don't show error for recommendations, just set empty array
       console.error('Error fetching recommendations:', error);
+      dispatch({ type: ActionTypes.SET_RECOMMENDATIONS, payload: [] });
     }
   }, []);
 
-  // Search actions
+  // Search actions with array safety
   const searchMovies = useCallback(async (searchParams) => {
     dispatch({ type: ActionTypes.SET_LOADING, payload: true });
     try {
       const results = await movieService.searchMovies(searchParams);
-      dispatch({ type: ActionTypes.SET_SEARCH_RESULTS, payload: results });
-      return results;
+      dispatch({ 
+        type: ActionTypes.SET_SEARCH_RESULTS, 
+        payload: ensureArray(results) 
+      });
+      return ensureArray(results);
     } catch (error) {
       handleError(error);
+      dispatch({ type: ActionTypes.SET_SEARCH_RESULTS, payload: [] });
+      return [];
     }
   }, [handleError]);
 
@@ -301,13 +382,17 @@ export const MovieProvider = ({ children }) => {
     dispatch({ type: ActionTypes.CLEAR_SEARCH });
   }, []);
 
-  // User list actions
+  // User list actions with array safety
   const fetchFavorites = useCallback(async () => {
     try {
       const favorites = await favoritesService.getFavorites();
-      dispatch({ type: ActionTypes.SET_FAVORITES, payload: favorites });
+      dispatch({ 
+        type: ActionTypes.SET_FAVORITES, 
+        payload: ensureArray(favorites) 
+      });
     } catch (error) {
       console.error('Error fetching favorites:', error);
+      dispatch({ type: ActionTypes.SET_FAVORITES, payload: [] });
     }
   }, []);
 
@@ -334,9 +419,13 @@ export const MovieProvider = ({ children }) => {
   const fetchWatchlist = useCallback(async () => {
     try {
       const watchlist = await watchlistService.getWatchlist();
-      dispatch({ type: ActionTypes.SET_WATCHLIST, payload: watchlist });
+      dispatch({ 
+        type: ActionTypes.SET_WATCHLIST, 
+        payload: ensureArray(watchlist) 
+      });
     } catch (error) {
       console.error('Error fetching watchlist:', error);
+      dispatch({ type: ActionTypes.SET_WATCHLIST, payload: [] });
     }
   }, []);
 
@@ -361,9 +450,13 @@ export const MovieProvider = ({ children }) => {
   const fetchWatchLater = useCallback(async () => {
     try {
       const watchLater = await watchLaterService.getWatchLater();
-      dispatch({ type: ActionTypes.SET_WATCH_LATER, payload: watchLater });
+      dispatch({ 
+        type: ActionTypes.SET_WATCH_LATER, 
+        payload: ensureArray(watchLater) 
+      });
     } catch (error) {
       console.error('Error fetching watch later:', error);
+      dispatch({ type: ActionTypes.SET_WATCH_LATER, payload: [] });
     }
   }, []);
 
@@ -388,29 +481,41 @@ export const MovieProvider = ({ children }) => {
   const fetchWatchHistory = useCallback(async () => {
     try {
       const history = await watchHistoryService.getWatchHistory();
-      dispatch({ type: ActionTypes.SET_WATCH_HISTORY, payload: history });
+      dispatch({ 
+        type: ActionTypes.SET_WATCH_HISTORY, 
+        payload: ensureArray(history) 
+      });
     } catch (error) {
       console.error('Error fetching watch history:', error);
+      dispatch({ type: ActionTypes.SET_WATCH_HISTORY, payload: [] });
     }
   }, []);
 
   const fetchContinueWatching = useCallback(async () => {
     try {
       const continueWatching = await watchHistoryService.getContinueWatching();
-      dispatch({ type: ActionTypes.SET_CONTINUE_WATCHING, payload: continueWatching });
+      dispatch({ 
+        type: ActionTypes.SET_CONTINUE_WATCHING, 
+        payload: ensureArray(continueWatching) 
+      });
     } catch (error) {
       console.error('Error fetching continue watching:', error);
+      dispatch({ type: ActionTypes.SET_CONTINUE_WATCHING, payload: [] });
     }
   }, []);
 
-  // Comment actions
+  // Comment actions with array safety
   const fetchComments = useCallback(async (movieId) => {
     dispatch({ type: ActionTypes.SET_LOADING_COMMENTS, payload: true });
     try {
       const comments = await commentsService.getCommentsByMovie(movieId);
-      dispatch({ type: ActionTypes.SET_COMMENTS, payload: comments });
+      dispatch({ 
+        type: ActionTypes.SET_COMMENTS, 
+        payload: ensureArray(comments) 
+      });
     } catch (error) {
       handleError(error);
+      dispatch({ type: ActionTypes.SET_COMMENTS, payload: [] });
     }
   }, [handleError]);
 
@@ -451,7 +556,7 @@ export const MovieProvider = ({ children }) => {
     dispatch({ type: ActionTypes.CLEAR_ERROR });
   }, []);
 
-  const updateWatchProgress = useCallback(async (movieId, progressData) => {
+  const updateWatchProgress = useCallback(async (progressData) => {
     try {
       await movieService.updateWatchProgress(progressData);
       // Refresh continue watching list
@@ -461,23 +566,32 @@ export const MovieProvider = ({ children }) => {
     }
   }, [fetchContinueWatching]);
 
-  // Helper functions
+  // Helper functions with array safety
   const isInFavorites = useCallback((movieId) => {
-    return state.favorites.some(movie => movie.id === movieId);
+    return ensureArray(state.favorites).some(movie => movie.id === movieId);
   }, [state.favorites]);
 
   const isInWatchlist = useCallback((movieId) => {
-    return state.watchlist.some(movie => movie.id === movieId);
+    return ensureArray(state.watchlist).some(movie => movie.id === movieId);
   }, [state.watchlist]);
 
   const isInWatchLater = useCallback((movieId) => {
-    return state.watchLater.some(movie => movie.id === movieId);
+    return ensureArray(state.watchLater).some(movie => movie.id === movieId);
   }, [state.watchLater]);
 
   // Context value
   const value = {
-    // State
+    // State with safe array defaults
     ...state,
+    movies: ensureArray(state.movies),
+    recommendations: ensureArray(state.recommendations),
+    searchResults: ensureArray(state.searchResults),
+    favorites: ensureArray(state.favorites),
+    watchlist: ensureArray(state.watchlist),
+    watchLater: ensureArray(state.watchLater),
+    watchHistory: ensureArray(state.watchHistory),
+    continueWatching: ensureArray(state.continueWatching),
+    comments: ensureArray(state.comments),
 
     // Movie actions
     fetchMovies,

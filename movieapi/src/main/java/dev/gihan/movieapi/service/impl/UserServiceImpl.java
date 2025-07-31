@@ -115,6 +115,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public void deleteAdminIfExists() {
+        userRepository.findByRole(Role.ADMIN).ifPresent(userRepository::delete);
+    }
+
+    @Override
     public User findByEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
             return null;
