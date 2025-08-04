@@ -26,7 +26,7 @@ public class FileUploadServiceImpl implements FileUploadService {
     private String maxFileSize;
 
     private static final List<String> ALLOWED_VIDEO_TYPES = Arrays.asList(
-            "video/mp4", "video/avi", "video/mov", "video/wmv", "video/flv", "video/webm"
+            "video/mp4", "video/avi", "video/quicktime", "video/wmv", "video/flv", "video/webm"
     );
 
     private static final List<String> ALLOWED_IMAGE_TYPES = Arrays.asList(
