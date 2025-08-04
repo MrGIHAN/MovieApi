@@ -1,19 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { 
   HomeIcon, 
   FilmIcon, 
   UsersIcon, 
   ArrowUpTrayIcon,
-  ChartBarIcon 
+  ChartBarIcon,
+  Bars3Icon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
+
+// Import the actual components (make sure these match your file names)
 import Dashboard from '../components/admin/Dashboard';
 import MovieUpload from '../components/admin/MovieUpload';
 import UserManagement from '../components/admin/UserManagement';
 import Statistics from '../components/admin/Statistics';
 
+// Import services and utilities
+import { movieService, adminMovieService } from '../services/movieService';
+import { useNotification } from '../context/NotificationContext';
+import { SkeletonLoader } from '../components/common/Loader';
+import { formatDate } from '../utils/helpers';
+
 const Admin = () => {
   const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const navigation = [
     {
@@ -51,37 +62,60 @@ const Admin = () => {
   return (
     <div className="min-h-screen pt-16 bg-netflix-black">
       <div className="flex">
+        {/* Mobile sidebar backdrop */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 z-40 bg-black bg-opacity-50 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
         {/* Sidebar */}
-        <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 md:pt-16">
-          <div className="flex-1 flex flex-col min-h-0 bg-netflix-darkGray border-r border-netflix-gray">
-            <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-              <div className="flex items-center flex-shrink-0 px-4 mb-8">
-                <h1 className="text-xl font-bold text-yellow-400">Admin Panel</h1>
-              </div>
-              <nav className="mt-5 flex-1 px-2 space-y-1">
-                {navigation.map((item) => (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`
-                      group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors duration-200
-                      ${item.current
-                        ? 'bg-netflix-red text-white'
-                        : 'text-netflix-lightGray hover:bg-netflix-gray hover:text-white'
-                      }
-                    `}
-                  >
-                    <item.icon
-                      className={`
-                        mr-3 flex-shrink-0 h-6 w-6
-                        ${item.current ? 'text-white' : 'text-netflix-lightGray group-hover:text-white'}
-                      `}
-                    />
-                    {item.name}
-                  </Link>
-                ))}
-              </nav>
+        <div className={`
+          fixed inset-y-0 left-0 z-50 w-64 bg-netflix-darkGray border-r border-netflix-gray transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:inset-0
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        `}>
+          <div className="flex flex-col h-full pt-16">
+            {/* Mobile close button */}
+            <div className="md:hidden flex justify-end p-4">
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="text-netflix-lightGray hover:text-white"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
             </div>
+
+            {/* Logo/Title */}
+            <div className="flex items-center flex-shrink-0 px-4 mb-8">
+              <h1 className="text-xl font-bold text-yellow-400">Admin Panel</h1>
+            </div>
+
+            {/* Navigation */}
+            <nav className="flex-1 px-2 space-y-1">
+              {navigation.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  onClick={() => setSidebarOpen(false)}
+                  className={`
+                    group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors duration-200
+                    ${item.current
+                      ? 'bg-netflix-red text-white'
+                      : 'text-netflix-lightGray hover:bg-netflix-gray hover:text-white'
+                    }
+                  `}
+                >
+                  <item.icon
+                    className={`
+                      mr-3 flex-shrink-0 h-6 w-6
+                      ${item.current ? 'text-white' : 'text-netflix-lightGray group-hover:text-white'}
+                    `}
+                  />
+                  {item.name}
+                </Link>
+              ))}
+            </nav>
             
             {/* Admin Info */}
             <div className="flex-shrink-0 p-4 border-t border-netflix-gray">
@@ -100,22 +134,23 @@ const Admin = () => {
 
         {/* Mobile menu button */}
         <div className="md:hidden fixed top-20 left-4 z-40">
-          <button className="bg-netflix-darkGray p-2 rounded-md text-netflix-lightGray hover:text-white">
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+          <button 
+            onClick={() => setSidebarOpen(true)}
+            className="bg-netflix-darkGray p-2 rounded-md text-netflix-lightGray hover:text-white border border-netflix-gray"
+          >
+            <Bars3Icon className="h-6 w-6" />
           </button>
         </div>
 
         {/* Main content */}
-        <div className="md:pl-64 flex flex-col flex-1">
-          <main className="flex-1">
+        <div className="flex-1 md:pl-64">
+          <main className="min-h-screen">
             <Routes>
-              <Route index element={<AdminDashboard />} />
+              <Route index element={<Dashboard />} />
               <Route path="movies" element={<AdminMovies />} />
-              <Route path="upload" element={<AdminUpload />} />
-              <Route path="users" element={<AdminUsers />} />
-              <Route path="statistics" element={<AdminStatistics />} />
+              <Route path="upload" element={<MovieUpload />} />
+              <Route path="users" element={<UserManagement />} />
+              <Route path="statistics" element={<Statistics />} />
             </Routes>
           </main>
         </div>
@@ -124,148 +159,341 @@ const Admin = () => {
   );
 };
 
-// Placeholder components for admin sections
-const AdminDashboard = () => (
-  <div className="p-8">
-    <div className="mb-8">
-      <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
-      <p className="text-netflix-lightGray mt-2">Overview of your Netflix Clone platform</p>
-    </div>
+// ✅ FIXED: AdminMovies component with real API integration
+const AdminMovies = () => {
+  const { error: notifyError } = useNotification();
+  const [movies, setMovies] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState('desc');
 
-    {/* Stats Grid */}
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <div className="bg-netflix-darkGray rounded-lg p-6">
-        <div className="flex items-center">
-          <div className="p-2 bg-blue-500 rounded-lg">
-            <FilmIcon className="h-6 w-6 text-white" />
+  const fetchMovies = React.useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      console.log('Fetching movies from API...');
+      
+      // Use the real movie service - try admin endpoint first, fallback to regular
+      let moviesData;
+      try {
+        // Try admin-specific endpoint if available
+        moviesData = await movieService.getAllMovies();
+      } catch (regularError) {
+        console.log('Regular movies endpoint failed:', regularError);
+        // You could try admin endpoint here if it has a different method
+        throw regularError;
+      }
+
+      console.log('Movies data received:', moviesData);
+      console.log('Data type:', typeof moviesData);
+      console.log('Is array:', Array.isArray(moviesData));
+
+      // Ensure we have an array
+      const safeMovies = Array.isArray(moviesData) ? moviesData : [];
+      setMovies(safeMovies);
+      
+      if (safeMovies.length === 0) {
+        console.log('No movies found in response');
+      }
+
+    } catch (err) {
+      console.error('Error fetching movies:', err);
+      console.error('Error details:', {
+        message: err.message,
+        status: err.response?.status,
+        data: err.response?.data
+      });
+      
+      setError(`Failed to fetch movies: ${err.message}`);
+      notifyError('Failed to load movies. Please check your connection and try again.');
+      setMovies([]); // Set empty array, not fake data
+    } finally {
+      setIsLoading(false);
+    }
+  }, [notifyError]);
+
+  React.useEffect(() => {
+    fetchMovies();
+  }, [fetchMovies]);
+
+  const handleRefresh = () => {
+    fetchMovies();
+  };
+
+  const handleDeleteMovie = async (movieId) => {
+    if (!window.confirm('Are you sure you want to delete this movie?')) {
+      return;
+    }
+
+    try {
+      await adminMovieService.deleteMovie(movieId);
+      setMovies(prevMovies => prevMovies.filter(movie => movie.id !== movieId));
+    } catch (err) {
+      console.error('Error deleting movie:', err);
+      notifyError('Failed to delete movie');
+    }
+  };
+
+  // Filter and sort movies
+  const filteredMovies = React.useMemo(() => {
+    let filtered = movies.filter(movie => 
+      movie.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      movie.genre?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    // Sort movies
+    filtered.sort((a, b) => {
+      let aValue = a[sortBy];
+      let bValue = b[sortBy];
+
+      if (sortBy === 'createdAt') {
+        aValue = new Date(aValue || 0);
+        bValue = new Date(bValue || 0);
+      } else if (typeof aValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = (bValue || '').toLowerCase();
+      }
+
+      if (sortOrder === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+
+    return filtered;
+  }, [movies, searchQuery, sortBy, sortOrder]);
+
+  if (isLoading) {
+    return (
+      <div className="p-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">Movie Management</h1>
+          <p className="text-netflix-lightGray">Loading movies...</p>
+        </div>
+        <SkeletonLoader type="list" count={5} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">Movie Management</h1>
+          <p className="text-netflix-lightGray">Manage your movie collection</p>
+        </div>
+
+        <div className="bg-red-900/20 border border-red-500 rounded-lg p-6 text-center mb-8">
+          <div className="text-red-400 mb-4">
+            <FilmIcon className="h-16 w-16 mx-auto" />
           </div>
-          <div className="ml-4">
-            <p className="text-sm font-medium text-netflix-lightGray">Total Movies</p>
-            <p className="text-2xl font-semibold text-white">1,234</p>
-          </div>
+          <h2 className="text-xl font-semibold text-white mb-2">Failed to Load Movies</h2>
+          <p className="text-netflix-lightGray mb-4">{error}</p>
+          <button
+            onClick={handleRefresh}
+            className="bg-netflix-red hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors duration-200"
+          >
+            Try Again
+          </button>
         </div>
       </div>
+    );
+  }
 
-      <div className="bg-netflix-darkGray rounded-lg p-6">
-        <div className="flex items-center">
-          <div className="p-2 bg-green-500 rounded-lg">
-            <UsersIcon className="h-6 w-6 text-white" />
-          </div>
-          <div className="ml-4">
-            <p className="text-sm font-medium text-netflix-lightGray">Active Users</p>
-            <p className="text-2xl font-semibold text-white">5,678</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-netflix-darkGray rounded-lg p-6">
-        <div className="flex items-center">
-          <div className="p-2 bg-yellow-500 rounded-lg">
-            <ChartBarIcon className="h-6 w-6 text-white" />
-          </div>
-          <div className="ml-4">
-            <p className="text-sm font-medium text-netflix-lightGray">Views Today</p>
-            <p className="text-2xl font-semibold text-white">12,345</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-netflix-darkGray rounded-lg p-6">
-        <div className="flex items-center">
-          <div className="p-2 bg-red-500 rounded-lg">
-            <ArrowUpTrayIcon className="h-6 w-6 text-white" />
-          </div>
-          <div className="ml-4">
-            <p className="text-sm font-medium text-netflix-lightGray">Uploads</p>
-            <p className="text-2xl font-semibold text-white">89</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    {/* Quick Actions */}
-    <div className="bg-netflix-darkGray rounded-lg p-6">
-      <h2 className="text-xl font-bold text-white mb-4">Quick Actions</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Link
-          to="/admin/upload"
-          className="flex items-center p-4 bg-netflix-gray rounded-lg hover:bg-netflix-lightGray transition-colors duration-200"
-        >
-          <ArrowUpTrayIcon className="h-8 w-8 text-netflix-red mr-3" />
+  return (
+    <div className="p-8">
+      <div className="mb-8">
+        <div className="flex justify-between items-center mb-4">
           <div>
-            <h3 className="text-white font-medium">Upload Movie</h3>
-            <p className="text-netflix-lightGray text-sm">Add new content</p>
+            <h1 className="text-3xl font-bold text-white mb-2">Movie Management</h1>
+            <p className="text-netflix-lightGray">
+              {movies.length > 0 
+                ? `Managing ${movies.length} movie${movies.length !== 1 ? 's' : ''}`
+                : 'Manage your movie collection'
+              }
+            </p>
           </div>
-        </Link>
+          <button
+            onClick={handleRefresh}
+            className="bg-netflix-gray hover:bg-netflix-lightGray text-white px-4 py-2 rounded-md transition-colors duration-200"
+          >
+            Refresh
+          </button>
+        </div>
 
-        <Link
-          to="/admin/users"
-          className="flex items-center p-4 bg-netflix-gray rounded-lg hover:bg-netflix-lightGray transition-colors duration-200"
-        >
-          <UsersIcon className="h-8 w-8 text-blue-400 mr-3" />
-          <div>
-            <h3 className="text-white font-medium">Manage Users</h3>
-            <p className="text-netflix-lightGray text-sm">User administration</p>
-          </div>
-        </Link>
+        {/* Search and Sort Controls */}
+        {movies.length > 0 && (
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0 mb-6">
+            <div className="flex-1 max-w-md">
+              <input
+                type="text"
+                placeholder="Search movies..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-4 py-2 bg-netflix-gray border border-netflix-lightGray rounded-lg text-white placeholder-netflix-lightGray focus:outline-none focus:ring-2 focus:ring-netflix-red"
+              />
+            </div>
 
-        <Link
-          to="/admin/statistics"
-          className="flex items-center p-4 bg-netflix-gray rounded-lg hover:bg-netflix-lightGray transition-colors duration-200"
-        >
-          <ChartBarIcon className="h-8 w-8 text-green-400 mr-3" />
-          <div>
-            <h3 className="text-white font-medium">View Analytics</h3>
-            <p className="text-netflix-lightGray text-sm">Platform insights</p>
+            <div className="flex items-center space-x-4">
+              <select
+                value={`${sortBy}-${sortOrder}`}
+                onChange={(e) => {
+                  const [field, order] = e.target.value.split('-');
+                  setSortBy(field);
+                  setSortOrder(order);
+                }}
+                className="bg-netflix-gray border border-netflix-lightGray text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-netflix-red"
+              >
+                <option value="createdAt-desc">Newest First</option>
+                <option value="createdAt-asc">Oldest First</option>
+                <option value="title-asc">Title A-Z</option>
+                <option value="title-desc">Title Z-A</option>
+                <option value="viewCount-desc">Most Viewed</option>
+                <option value="imdbRating-desc">Highest Rated</option>
+              </select>
+            </div>
           </div>
-        </Link>
+        )}
+      </div>
+
+      <div className="bg-netflix-darkGray rounded-lg border border-netflix-gray overflow-hidden">
+        <div className="p-6 border-b border-netflix-gray">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold text-white">
+              {filteredMovies.length > 0 
+                ? `${filteredMovies.length} Movie${filteredMovies.length !== 1 ? 's' : ''} Found`
+                : movies.length > 0 
+                  ? 'No Movies Match Your Search'
+                  : 'All Movies'
+              }
+            </h2>
+            <Link 
+              to="/admin/upload"
+              className="bg-netflix-red hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors duration-200"
+            >
+              Add New Movie
+            </Link>
+          </div>
+        </div>
+
+        {filteredMovies.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-netflix-gray">
+                <tr>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-white">Movie</th>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-white">Genre</th>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-white">Year</th>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-white">Rating</th>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-white">Views</th>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-white">Added</th>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-white">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredMovies.map((movie) => (
+                  <tr key={movie.id} className="border-b border-netflix-gray hover:bg-netflix-gray/50 transition-colors duration-200">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-8 bg-netflix-lightGray rounded overflow-hidden flex-shrink-0">
+                          {movie.posterUrl || movie.thumbnailUrl ? (
+                            <img
+                              src={movie.posterUrl || movie.thumbnailUrl}
+                              alt={movie.title}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.nextSibling.style.display = 'flex';
+                              }}
+                            />
+                          ) : null}
+                          <div className="w-full h-full bg-netflix-lightGray flex items-center justify-center">
+                            <FilmIcon className="h-4 w-4 text-netflix-darkGray" />
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-white font-medium">{movie.title}</p>
+                          <p className="text-netflix-lightGray text-sm truncate max-w-xs">
+                            {movie.description}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-netflix-lightGray">
+                      {movie.genre || 'Unknown'}
+                    </td>
+                    <td className="px-6 py-4 text-netflix-lightGray">
+                      {movie.releaseYear || 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 text-netflix-lightGray">
+                      {movie.imdbRating ? `${movie.imdbRating}/10` : 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 text-netflix-lightGray">
+                      {movie.viewCount?.toLocaleString() || '0'}
+                    </td>
+                    <td className="px-6 py-4 text-netflix-lightGray text-sm">
+                      {movie.createdAt ? formatDate(movie.createdAt) : 'Unknown'}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center space-x-2">
+                        <button
+                          className="text-blue-400 hover:text-blue-300 text-sm transition-colors duration-200"
+                          onClick={() => {
+                            // Navigate to edit page or open edit modal
+                            console.log('Edit movie:', movie.id);
+                          }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="text-red-400 hover:text-red-300 text-sm transition-colors duration-200"
+                          onClick={() => handleDeleteMovie(movie.id)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : movies.length === 0 ? (
+          <div className="p-12 text-center">
+            <FilmIcon className="h-16 w-16 text-netflix-lightGray mx-auto mb-4 opacity-50" />
+            <h3 className="text-xl font-medium text-white mb-2">No Movies Available</h3>
+            <p className="text-netflix-lightGray mb-6">
+              It looks like no movies have been uploaded yet.
+            </p>
+            <Link 
+              to="/admin/upload"
+              className="btn btn-primary"
+            >
+              Upload Your First Movie
+            </Link>
+          </div>
+        ) : (
+          <div className="p-12 text-center">
+            <FilmIcon className="h-16 w-16 text-netflix-lightGray mx-auto mb-4 opacity-50" />
+            <h3 className="text-xl font-medium text-white mb-2">No Movies Match Your Search</h3>
+            <p className="text-netflix-lightGray mb-6">
+              Try adjusting your search terms or filters.
+            </p>
+            <button
+              onClick={() => setSearchQuery('')}
+              className="btn btn-outline"
+            >
+              Clear Search
+            </button>
+          </div>
+        )}
       </div>
     </div>
-  </div>
-);
-
-const AdminMovies = () => (
-  <div className="p-8">
-    <h1 className="text-3xl font-bold text-white mb-8">Movie Management</h1>
-    <div className="bg-netflix-darkGray rounded-lg p-6 text-center">
-      <FilmIcon className="h-16 w-16 text-netflix-lightGray mx-auto mb-4" />
-      <h2 className="text-xl font-bold text-white mb-2">Movie Management</h2>
-      <p className="text-netflix-lightGray">Manage your movie collection here.</p>
-    </div>
-  </div>
-);
-
-const AdminUpload = () => (
-  <div className="p-8">
-    <h1 className="text-3xl font-bold text-white mb-8">Upload Movies</h1>
-    <div className="bg-netflix-darkGray rounded-lg p-6 text-center">
-      <ArrowUpTrayIcon className="h-16 w-16 text-netflix-lightGray mx-auto mb-4" />
-      <h2 className="text-xl font-bold text-white mb-2">Upload New Content</h2>
-      <p className="text-netflix-lightGray">Add new movies to your platform.</p>
-    </div>
-  </div>
-);
-
-const AdminUsers = () => (
-  <div className="p-8">
-    <h1 className="text-3xl font-bold text-white mb-8">User Management</h1>
-    <div className="bg-netflix-darkGray rounded-lg p-6 text-center">
-      <UsersIcon className="h-16 w-16 text-netflix-lightGray mx-auto mb-4" />
-      <h2 className="text-xl font-bold text-white mb-2">User Management</h2>
-      <p className="text-netflix-lightGray">Manage registered users and permissions.</p>
-    </div>
-  </div>
-);
-
-const AdminStatistics = () => (
-  <div className="p-8">
-    <h1 className="text-3xl font-bold text-white mb-8">Platform Statistics</h1>
-    <div className="bg-netflix-darkGray rounded-lg p-6 text-center">
-      <ChartBarIcon className="h-16 w-16 text-netflix-lightGray mx-auto mb-4" />
-      <h2 className="text-xl font-bold text-white mb-2">Analytics & Statistics</h2>
-      <p className="text-netflix-lightGray">View detailed platform analytics and insights.</p>
-    </div>
-  </div>
-);
+  );
+};
 
 export default Admin;

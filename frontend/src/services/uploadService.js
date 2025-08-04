@@ -1,3 +1,4 @@
+// Fixed uploadService.js
 import { apiService } from './api';
 import { API_ENDPOINTS, FILE_CONSTRAINTS, TOAST_MESSAGES } from '../utils/constants';
 import { formatFileSize, getErrorMessage } from '../utils/helpers';
@@ -39,7 +40,7 @@ export const uploadService = {
   },
 
   /**
-   * Upload video file
+   * Upload video file with proper error handling
    * @param {File} file - Video file
    * @param {Function} onProgress - Progress callback
    * @returns {Promise<object>} Upload response
@@ -56,6 +57,9 @@ export const uploadService = {
     try {
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('type', 'video');
+
+      console.log('Uploading video file:', file.name, 'Size:', formatFileSize(file.size));
 
       const response = await apiService.upload(
         API_ENDPOINTS.ADMIN.UPLOAD_VIDEO,
@@ -63,17 +67,18 @@ export const uploadService = {
         onProgress
       );
 
-      toast.success('Video uploaded successfully');
+      console.log('Video upload response:', response.data);
       return response.data;
     } catch (error) {
+      console.error('Video upload error:', error);
       const message = getErrorMessage(error);
-      toast.error(message);
+      toast.error(`Video upload failed: ${message}`);
       throw error;
     }
   },
 
   /**
-   * Upload image file
+   * Upload image file with proper error handling
    * @param {File} file - Image file
    * @param {Function} onProgress - Progress callback
    * @returns {Promise<object>} Upload response
@@ -90,6 +95,9 @@ export const uploadService = {
     try {
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('type', 'image');
+
+      console.log('Uploading image file:', file.name, 'Size:', formatFileSize(file.size));
 
       const response = await apiService.upload(
         API_ENDPOINTS.ADMIN.UPLOAD_IMAGE,
@@ -97,45 +105,153 @@ export const uploadService = {
         onProgress
       );
 
-      toast.success('Image uploaded successfully');
+      console.log('Image upload response:', response.data);
       return response.data;
     } catch (error) {
+      console.error('Image upload error:', error);
       const message = getErrorMessage(error);
-      toast.error(message);
+      toast.error(`Image upload failed: ${message}`);
       throw error;
     }
   },
 
   /**
-   * Upload multiple files
-   * @param {FileList} files - Files to upload
-   * @param {string} type - File type ('video' or 'image')
-   * @param {Function} onProgress - Progress callback (receives file index and progress)
-   * @returns {Promise<Array>} Array of upload responses
+   * Create movie with uploaded files
+   * @param {object} movieData - Movie data with file URLs
+   * @returns {Promise<object>} Created movie
    */
-  async uploadMultipleFiles(files, type, onProgress) {
-    const uploadPromises = Array.from(files).map((file, index) => {
-      const progressCallback = (progress) => {
-        if (onProgress) {
-          onProgress(index, progress);
-        }
-      };
-
-      if (type === 'video') {
-        return this.uploadVideo(file, progressCallback);
-      } else if (type === 'image') {
-        return this.uploadImage(file, progressCallback);
-      }
-    });
-
+  async createMovieWithFiles(movieData) {
     try {
-      const results = await Promise.all(uploadPromises);
-      toast.success(`${results.length} files uploaded successfully`);
-      return results;
+      console.log('Creating movie with data:', movieData);
+      
+      const response = await apiService.post(API_ENDPOINTS.ADMIN.MOVIES, movieData);
+      
+      console.log('Movie creation response:', response.data);
+      toast.success('Movie created successfully!');
+      
+      return response.data;
     } catch (error) {
-      toast.error('Some files failed to upload');
+      console.error('Movie creation error:', error);
+      const message = getErrorMessage(error);
+      toast.error(`Movie creation failed: ${message}`);
       throw error;
     }
+  },
+
+  /**
+   * Complete movie upload process
+   * @param {object} movieData - Movie metadata
+   * @param {File} videoFile - Video file
+   * @param {File} posterFile - Poster file
+   * @param {File} thumbnailFile - Thumbnail file (optional)
+   * @param {Function} onProgress - Progress callback
+   * @returns {Promise<object>} Created movie
+   */
+  async uploadMovieComplete(movieData, videoFile, posterFile, thumbnailFile, onProgress) {
+    try {
+      let overallProgress = 0;
+      const updateProgress = (step, stepProgress) => {
+        const stepWeights = { video: 60, poster: 20, thumbnail: 10, create: 10 };
+        const stepStartProgress = {
+          video: 0,
+          poster: 60,
+          thumbnail: 80,
+          create: 90
+        };
+        
+        overallProgress = stepStartProgress[step] + (stepProgress * stepWeights[step] / 100);
+        onProgress({ step, stepProgress, overallProgress });
+      };
+
+      // Step 1: Upload video
+      updateProgress('video', 0);
+      const videoResponse = await this.uploadVideo(videoFile, (progress) => {
+        updateProgress('video', progress);
+      });
+
+      // Step 2: Upload poster
+      updateProgress('poster', 0);
+      const posterResponse = await this.uploadImage(posterFile, (progress) => {
+        updateProgress('poster', progress);
+      });
+
+      // Step 3: Upload thumbnail (optional)
+      let thumbnailResponse = null;
+      if (thumbnailFile) {
+        updateProgress('thumbnail', 0);
+        thumbnailResponse = await this.uploadImage(thumbnailFile, (progress) => {
+          updateProgress('thumbnail', progress);
+        });
+      }
+
+      // Step 4: Create movie record
+      updateProgress('create', 0);
+      const completeMovieData = {
+        ...movieData,
+        videoUrl: videoResponse.url || videoResponse.filePath,
+        posterUrl: posterResponse.url || posterResponse.filePath,
+        thumbnailUrl: thumbnailResponse?.url || thumbnailResponse?.filePath || (posterResponse.url || posterResponse.filePath),
+        fileSize: videoFile.size,
+        uploadedAt: new Date().toISOString()
+      };
+
+      const movieResponse = await this.createMovieWithFiles(completeMovieData);
+      updateProgress('create', 100);
+
+      return movieResponse;
+    } catch (error) {
+      console.error('Complete upload process failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Generate thumbnail from video
+   * @param {File} videoFile - Video file
+   * @param {number} timeInSeconds - Time to capture thumbnail
+   * @returns {Promise<File>} Thumbnail image file
+   */
+  async generateVideoThumbnail(videoFile, timeInSeconds = 5) {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement('video');
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      video.addEventListener('loadedmetadata', () => {
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 360;
+      });
+
+      video.addEventListener('seeked', () => {
+        try {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const thumbnailFile = new File(
+                [blob],
+                `${videoFile.name.split('.')[0]}_thumbnail.jpg`,
+                { type: 'image/jpeg' }
+              );
+              resolve(thumbnailFile);
+            } else {
+              reject(new Error('Failed to generate thumbnail'));
+            }
+          }, 'image/jpeg', 0.8);
+        } catch (error) {
+          reject(error);
+        }
+      });
+
+      video.addEventListener('error', reject);
+      
+      try {
+        video.src = URL.createObjectURL(videoFile);
+        video.currentTime = Math.min(timeInSeconds, 5); // Ensure we don't seek beyond video length
+      } catch (error) {
+        reject(error);
+      }
+    });
   },
 
   /**
@@ -152,7 +268,9 @@ export const uploadService = {
    * @param {string} url - Preview URL to revoke
    */
   revokePreviewURL(url) {
-    URL.revokeObjectURL(url);
+    if (url && url.startsWith('blob:')) {
+      URL.revokeObjectURL(url);
+    }
   },
 
   /**
@@ -169,133 +287,6 @@ export const uploadService = {
       formattedSize: formatFileSize(file.size),
       extension: file.name.split('.').pop().toLowerCase()
     };
-  },
-
-  /**
-   * Compress image before upload
-   * @param {File} file - Image file
-   * @param {object} options - Compression options
-   * @param {number} options.maxWidth - Maximum width
-   * @param {number} options.maxHeight - Maximum height
-   * @param {number} options.quality - Compression quality (0-1)
-   * @returns {Promise<File>} Compressed file
-   */
-  async compressImage(file, options = {}) {
-    const {
-      maxWidth = 1920,
-      maxHeight = 1080,
-      quality = 0.8
-    } = options;
-
-    return new Promise((resolve, reject) => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const img = new Image();
-
-      img.onload = () => {
-        // Calculate new dimensions
-        let { width, height } = img;
-        
-        if (width > maxWidth) {
-          height = (height * maxWidth) / width;
-          width = maxWidth;
-        }
-        
-        if (height > maxHeight) {
-          width = (width * maxHeight) / height;
-          height = maxHeight;
-        }
-
-        // Set canvas size
-        canvas.width = width;
-        canvas.height = height;
-
-        // Draw and compress
-        ctx.drawImage(img, 0, 0, width, height);
-        
-        canvas.toBlob(
-          (blob) => {
-            const compressedFile = new File([blob], file.name, {
-              type: file.type,
-              lastModified: Date.now()
-            });
-            resolve(compressedFile);
-          },
-          file.type,
-          quality
-        );
-      };
-
-      img.onerror = reject;
-      img.src = URL.createObjectURL(file);
-    });
-  },
-
-  /**
-   * Generate thumbnail from video
-   * @param {File} videoFile - Video file
-   * @param {number} timeInSeconds - Time to capture thumbnail
-   * @returns {Promise<File>} Thumbnail image file
-   */
-  async generateVideoThumbnail(videoFile, timeInSeconds = 5) {
-    return new Promise((resolve, reject) => {
-      const video = document.createElement('video');
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-
-      video.addEventListener('loadedmetadata', () => {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-      });
-
-      video.addEventListener('seeked', () => {
-        ctx.drawImage(video, 0, 0);
-        
-        canvas.toBlob((blob) => {
-          const thumbnailFile = new File(
-            [blob],
-            `${videoFile.name.split('.')[0]}_thumbnail.jpg`,
-            { type: 'image/jpeg' }
-          );
-          resolve(thumbnailFile);
-        }, 'image/jpeg', 0.8);
-      });
-
-      video.addEventListener('error', reject);
-      
-      video.src = URL.createObjectURL(videoFile);
-      video.currentTime = timeInSeconds;
-    });
-  },
-
-  /**
-   * Check upload progress
-   * @param {string} uploadId - Upload ID
-   * @returns {Promise<object>} Upload status
-   */
-  async checkUploadProgress(uploadId) {
-    try {
-      const response = await apiService.get(`/upload/progress/${uploadId}`);
-      return response.data;
-    } catch (error) {
-      console.error('Error checking upload progress:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Cancel upload
-   * @param {string} uploadId - Upload ID
-   * @returns {Promise<void>}
-   */
-  async cancelUpload(uploadId) {
-    try {
-      await apiService.post(`/upload/cancel/${uploadId}`);
-      toast.success('Upload cancelled');
-    } catch (error) {
-      console.error('Error cancelling upload:', error);
-      throw error;
-    }
   }
 };
 
