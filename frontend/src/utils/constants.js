@@ -165,7 +165,7 @@ export const TOAST_MESSAGES = {
 export const FILE_CONSTRAINTS = {
   VIDEO: {
     MAX_SIZE: 100 * 1024 * 1024, // 100MB
-    ALLOWED_TYPES: ['video/mp4', 'video/avi', 'video/mov', 'video/wmv', 'video/flv', 'video/webm'],
+    ALLOWED_TYPES: ['video/mp4', 'video/avi', 'video/quicktime', 'video/wmv', 'video/flv', 'video/webm'],
   },
   IMAGE: {
     MAX_SIZE: 5 * 1024 * 1024, // 5MB
