@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -69,7 +70,7 @@ public class Movie {
     @DecimalMin(value = "0.0", message = "IMDB rating must be at least 0.0")
     @DecimalMax(value = "10.0", message = "IMDB rating must not exceed 10.0")
     @Column(name = "imdb_rating", precision = 3, scale = 1)
-    private Double imdbRating;
+    private BigDecimal imdbRating;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
