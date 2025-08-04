@@ -13,6 +13,7 @@ import dev.gihan.movieapi.service.MovieService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
@@ -42,7 +43,8 @@ public class MovieServiceImpl implements MovieService {
         movie.setThumbnailUrl(movieRequestDto.getThumbnailUrl());
         movie.setPosterUrl(movieRequestDto.getPosterUrl());
         movie.setGenre(movieRequestDto.getGenre());
-        movie.setImdbRating(movieRequestDto.getImdbRating());
+        movie.setImdbRating(
+                movieRequestDto.getImdbRating() != null ? BigDecimal.valueOf(movieRequestDto.getImdbRating()) : null);
 
         Movie savedMovie = movieRepository.save(movie);
         return convertToMovieResponseDto(savedMovie);
@@ -62,7 +64,8 @@ public class MovieServiceImpl implements MovieService {
         movie.setThumbnailUrl(movieRequestDto.getThumbnailUrl());
         movie.setPosterUrl(movieRequestDto.getPosterUrl());
         movie.setGenre(movieRequestDto.getGenre());
-        movie.setImdbRating(movieRequestDto.getImdbRating());
+        movie.setImdbRating(
+                movieRequestDto.getImdbRating() != null ? BigDecimal.valueOf(movieRequestDto.getImdbRating()) : null);
 
         Movie updatedMovie = movieRepository.save(movie);
         return convertToMovieResponseDto(updatedMovie);
@@ -178,7 +181,8 @@ public class MovieServiceImpl implements MovieService {
         dto.setPosterUrl(movie.getPosterUrl());
         dto.setTrailerUrl(movie.getTrailerUrl());
         dto.setGenre(movie.getGenre() != null ? movie.getGenre().toString() : null);
-        dto.setImdbRating(movie.getImdbRating());
+        dto.setImdbRating(
+                movie.getImdbRating() != null ? movie.getImdbRating().doubleValue() : null);
         dto.setCreatedAt(movie.getCreatedAt());
         dto.setUpdatedAt(movie.getUpdatedAt());
         dto.setViewCount(movie.getViewCount());
