@@ -54,7 +54,7 @@ public class WatchLaterController {
                         .body("User not authenticated");
             }
 
-            Movie movie = movieService.getMovieById(movieId);
+            Movie movie = movieService.getMovieEntityById(movieId);
             watchLaterService.addToWatchLater(user, movie);
             return ResponseEntity.ok(new MessageResponseDto("Movie added to watch later"));
         } catch (Exception e) {
@@ -71,7 +71,7 @@ public class WatchLaterController {
                         .body("User not authenticated");
             }
 
-            Movie movie = movieService.getMovieById(movieId);
+            Movie movie = movieService.getMovieEntityById(movieId);
             watchLaterService.removeFromWatchLater(user, movie);
             return ResponseEntity.ok(new MessageResponseDto("Movie removed from watch later"));
         } catch (Exception e) {

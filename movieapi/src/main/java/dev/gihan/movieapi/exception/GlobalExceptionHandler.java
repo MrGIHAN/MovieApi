@@ -1,5 +1,6 @@
 package dev.gihan.movieapi.exception;
 
+import dev.gihan.movieapi.dto.responseDto.ErrorResponse;
 import dev.gihan.movieapi.dto.responseDto.MessageResponseDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

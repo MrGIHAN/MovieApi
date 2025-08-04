@@ -4,6 +4,7 @@ import dev.gihan.movieapi.dto.requestDto.MovieRequestDto;
 import dev.gihan.movieapi.dto.responseDto.AdminStatsDto;
 import dev.gihan.movieapi.dto.responseDto.FileUploadResponseDto;
 import dev.gihan.movieapi.dto.responseDto.MessageResponseDto;
+import dev.gihan.movieapi.dto.responseDto.MovieResponseDto;
 import dev.gihan.movieapi.dto.responseDto.UserResponseDto;
 import dev.gihan.movieapi.model.Movie;
 import dev.gihan.movieapi.service.AdminService;
@@ -52,7 +53,7 @@ public class AdminController {
     @PostMapping("/movies")
     public ResponseEntity<?> createMovie(@RequestBody MovieRequestDto movieRequest) {
         try {
-            Movie movie = movieService.createMovie(movieRequest);
+            MovieResponseDto movie = movieService.createMovie(movieRequest);
             return ResponseEntity.status(HttpStatus.CREATED).body(movie);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new MessageResponseDto(e.getMessage()));
@@ -62,7 +63,7 @@ public class AdminController {
     @PutMapping("/movies/{id}")
     public ResponseEntity<?> updateMovie(@PathVariable Long id, @RequestBody MovieRequestDto movieRequest) {
         try {
-            Movie movie = movieService.updateMovie(id, movieRequest);
+            MovieResponseDto movie = movieService.updateMovie(id, movieRequest);
             return ResponseEntity.ok(movie);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new MessageResponseDto(e.getMessage()));
