@@ -8,19 +8,24 @@ import dev.gihan.movieapi.dto.responseDto.MessageResponseDto;
 import dev.gihan.movieapi.model.User;
 import dev.gihan.movieapi.service.AuthService;
 import dev.gihan.movieapi.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:3000")
 public class AuthController {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @Autowired
     private AuthService authService;
@@ -29,31 +34,38 @@ public class AuthController {
     private UserService userService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequestDto loginRequest) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequestDto loginRequest) {
         try {
+            logger.info("Login attempt for email: {}", loginRequest.getEmail());
             AuthResponseDto authResponse = authService.login(loginRequest);
+            logger.info("Successful login for email: {}", loginRequest.getEmail());
             return ResponseEntity.ok(authResponse);
         } catch (RuntimeException e) {
+            logger.warn("Failed login attempt for email: {}", loginRequest.getEmail());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new MessageResponseDto(e.getMessage()));
         }
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody UserRequestDto registerRequest) {
+    public ResponseEntity<?> register(@Valid @RequestBody UserRequestDto registerRequest) {
         try {
+            logger.info("Registration attempt for email: {}", registerRequest.getEmail());
             User user = userService.registerUser(registerRequest);
+            logger.info("Successful registration for email: {}", registerRequest.getEmail());
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(new MessageResponseDto("User registered successfully"));
         } catch (RuntimeException e) {
+            logger.warn("Failed registration attempt for email: {}", registerRequest.getEmail());
             return ResponseEntity.badRequest()
                     .body(new MessageResponseDto(e.getMessage()));
         }
     }
 
     @PostMapping("/register-admin")
-    public ResponseEntity<?> registerAdmin(@RequestBody UserRequestDto registerRequest) {
+    public ResponseEntity<?> registerAdmin(@Valid @RequestBody UserRequestDto registerRequest) {
         try {
+            logger.info("Admin registration attempt for email: {}", registerRequest.getEmail());
             // Check if admin already exists
             if (userService.isAdminExists()) {
                 return ResponseEntity.badRequest()
@@ -61,9 +73,11 @@ public class AuthController {
             }
 
             User admin = userService.registerAdmin(registerRequest);
+            logger.info("Successful admin registration for email: {}", registerRequest.getEmail());
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(new MessageResponseDto("Admin registered successfully"));
         } catch (RuntimeException e) {
+            logger.warn("Failed admin registration attempt for email: {}", registerRequest.getEmail());
             return ResponseEntity.badRequest()
                     .body(new MessageResponseDto(e.getMessage()));
         }
@@ -84,18 +98,22 @@ public class AuthController {
             adminRequest.setLastName("User");
 
             User admin = userService.registerAdmin(adminRequest);
+            logger.info("Setup admin created: {}", admin.getEmail());
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(new MessageResponseDto("Admin created successfully with email: " + admin.getEmail()));
         } catch (RuntimeException e) {
+            logger.error("Error setting up admin", e);
             return ResponseEntity.badRequest()
                     .body(new MessageResponseDto(e.getMessage()));
         }
     }
 
-    // Development endpoint to create a test admin
+    // Development endpoint to create a test admin - Only available in development profile
+    @Profile("!production")
     @PostMapping("/create-test-admin")
     public ResponseEntity<?> createTestAdmin() {
         try {
+            logger.warn("Creating test admin - this endpoint should not be available in production!");
             // Delete existing admin if any
             userService.deleteAdminIfExists();
             
@@ -113,6 +131,7 @@ public class AuthController {
                         "password", "admin123"
                     ));
         } catch (RuntimeException e) {
+            logger.error("Error creating test admin", e);
             return ResponseEntity.badRequest()
                     .body(new MessageResponseDto(e.getMessage()));
         }
@@ -124,17 +143,19 @@ public class AuthController {
             boolean adminExists = userService.isAdminExists();
             return ResponseEntity.ok(Map.of("adminExists", adminExists));
         } catch (Exception e) {
+            logger.error("Error checking admin status", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new MessageResponseDto("Error checking admin status: " + e.getMessage()));
         }
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenRequestDto refreshRequest) {
+    public ResponseEntity<?> refreshToken(@Valid @RequestBody RefreshTokenRequestDto refreshRequest) {
         try {
             AuthResponseDto authResponse = authService.refreshToken(refreshRequest.getRefreshToken());
             return ResponseEntity.ok(authResponse);
         } catch (RuntimeException e) {
+            logger.warn("Failed token refresh attempt");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new MessageResponseDto(e.getMessage()));
         }
@@ -144,6 +165,7 @@ public class AuthController {
     public ResponseEntity<?> logout() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated()) {
+            logger.info("User logout: {}", auth.getName());
             authService.logout(auth.getName());
         }
         return ResponseEntity.ok(new MessageResponseDto("Logged out successfully"));
@@ -156,6 +178,7 @@ public class AuthController {
             boolean isValid = authService.validateToken(jwt);
             return ResponseEntity.ok().body(isValid);
         } catch (Exception e) {
+            logger.warn("Token validation failed", e);
             return ResponseEntity.badRequest().body(false);
         }
     }

@@ -51,7 +51,7 @@ export const API_ENDPOINTS = {
     DELETE: (commentId) => `/api/comments/${commentId}`,
   },
   
-  // Admin endpoints - Updated to match backend controller
+  // Admin endpoints
   ADMIN: {
     STATS: '/api/admin/stats',
     USERS: '/api/admin/users',

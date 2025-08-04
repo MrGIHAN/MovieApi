@@ -10,6 +10,7 @@ import { NotificationProvider } from './context/NotificationContext';
 // Components
 import Header from './components/common/Header';
 import Footer from './components/common/Footer';
+import ErrorBoundary from './components/common/ErrorBoundary';
 import ProtectedRoute, { AdminRoute, GuestRoute } from './components/common/ProtectedRoute';
 
 // Pages
@@ -36,11 +37,12 @@ import './styles/globals.css';
 
 function App() {
   return (
-    <NotificationProvider>
-      <AuthProvider>
-        <MovieProvider>
-          <Router>
-            <div className="min-h-screen bg-netflix-black text-white">
+    <ErrorBoundary fallbackMessage="The Movie App encountered an unexpected error. Please try again.">
+      <NotificationProvider>
+        <AuthProvider>
+          <MovieProvider>
+            <Router>
+              <div className="min-h-screen bg-netflix-black text-white">
               {/* Toast Notifications */}
               <Toaster
                 position="top-right"
@@ -172,11 +174,12 @@ function App() {
 
               {/* Footer */}
               <Footer />
-            </div>
-          </Router>
-        </MovieProvider>
-      </AuthProvider>
-    </NotificationProvider>
+              </div>
+            </Router>
+          </MovieProvider>
+        </AuthProvider>
+      </NotificationProvider>
+    </ErrorBoundary>
   );
 }
 
