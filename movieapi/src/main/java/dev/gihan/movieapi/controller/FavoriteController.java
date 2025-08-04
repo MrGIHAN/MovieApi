@@ -54,7 +54,7 @@ public class FavoriteController {
                         .body("User not authenticated");
             }
 
-            Movie movie = movieService.getMovieById(movieId);
+            Movie movie = movieService.getMovieEntityById(movieId);
             favoriteService.addToFavorites(user, movie);
             return ResponseEntity.ok(new MessageResponseDto("Movie added to favorites"));
         } catch (Exception e) {
@@ -71,7 +71,7 @@ public class FavoriteController {
                         .body("User not authenticated");
             }
 
-            Movie movie = movieService.getMovieById(movieId);
+            Movie movie = movieService.getMovieEntityById(movieId);
             favoriteService.removeFromFavorites(user, movie);
             return ResponseEntity.ok(new MessageResponseDto("Movie removed from favorites"));
         } catch (Exception e) {
