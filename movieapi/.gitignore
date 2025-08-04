@@ -31,3 +31,27 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Environment Variables and Sensitive Files ###
+.env
+.env.local
+.env.production
+.env.staging
+application-local.properties
+application-production.properties
+application-staging.properties
+
+### Firebase Configuration ###
+src/main/resources/firebase/
+firebase-config.json
+serviceAccountKey.json
+
+### Upload Directories ###
+src/main/resources/static/uploads/
+src/main/resources/static/videos/
+uploads/
+videos/
+
+### Logs ###
+logs/
+*.log
