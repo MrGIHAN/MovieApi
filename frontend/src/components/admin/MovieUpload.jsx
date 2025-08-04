@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { API_ENDPOINTS, STORAGE_KEYS } from '../../utils/constants';
 
 const MovieUpload = () => {
   const [movieData, setMovieData] = useState({
@@ -100,8 +101,8 @@ const MovieUpload = () => {
         trending: movieData.trending
       };
 
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/movies', {
+      const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
+      const response = await fetch(API_ENDPOINTS.ADMIN.MOVIES, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
