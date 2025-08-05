@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { API_ENDPOINTS, STORAGE_KEYS } from '../../utils/constants';
+import { GENRES } from '../../utils/constants';
+import uploadService from '../../services/uploadService';
+
 
 const MovieUpload = () => {
   const [movieData, setMovieData] = useState({
@@ -8,9 +10,6 @@ const MovieUpload = () => {
     description: '',
     releaseYear: '',
     duration: '', // This will be converted to Duration on backend
-    videoUrl: '',
-    thumbnailUrl: '',
-    posterUrl: '',
     trailerUrl: '',
     genre: '',
     imdbRating: '',
@@ -19,12 +18,12 @@ const MovieUpload = () => {
   });
 
   const [loading, setLoading] = useState(false);
+  const [videoFile, setVideoFile] = useState(null);
+  const [posterFile, setPosterFile] = useState(null);
+  const [thumbnailFile, setThumbnailFile] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(null);
 
-  const genres = [
-    'ACTION', 'ADVENTURE', 'ANIMATION', 'COMEDY', 'CRIME', 'DOCUMENTARY',
-    'DRAMA', 'FAMILY', 'FANTASY', 'HISTORY', 'HORROR', 'MUSIC', 'MYSTERY',
-    'ROMANCE', 'SCIENCE_FICTION', 'THRILLER', 'WAR', 'WESTERN', 'BIOGRAPHY', 'SPORT'
-  ];
+  const genres = GENRES;
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -32,6 +31,24 @@ const MovieUpload = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    switch (e.target.name) {
+      case 'videoFile':
+        setVideoFile(file);
+        break;
+      case 'posterFile':
+        setPosterFile(file);
+        break;
+      case 'thumbnailFile':
+        setThumbnailFile(file);
+        break;
+      default:
+        break;
+    }
   };
 
   const validateForm = () => {
@@ -82,18 +99,20 @@ const MovieUpload = () => {
     
     if (!validateForm()) return;
     
+    if (!videoFile || !posterFile) {
+      toast.error('Video and poster files are required');
+      return;
+    }
+
     setLoading(true);
-    
+    setUploadProgress(0);
+
     try {
-      // Prepare the data for backend
       const submitData = {
         title: movieData.title.trim(),
         description: movieData.description || null,
         releaseYear: movieData.releaseYear ? parseInt(movieData.releaseYear) : null,
         duration: convertDurationToMinutes(movieData.duration), // Convert to minutes
-        videoUrl: movieData.videoUrl || null,
-        thumbnailUrl: movieData.thumbnailUrl || null,
-        posterUrl: movieData.posterUrl || null,
         trailerUrl: movieData.trailerUrl || null,
         genre: movieData.genre.toUpperCase(),
         imdbRating: movieData.imdbRating ? parseFloat(movieData.imdbRating) : null,
@@ -101,22 +120,14 @@ const MovieUpload = () => {
         trending: movieData.trending
       };
 
-      const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
-      const response = await fetch(API_ENDPOINTS.ADMIN.MOVIES, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(submitData)
-      });
+      await uploadService.uploadMovieComplete(
+        submitData,
+        videoFile,
+        posterFile,
+        thumbnailFile,
+        (progress) => setUploadProgress(progress.overallProgress)
+      );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create movie');
-      }
-
-      const result = await response.json();
       toast.success('Movie created successfully!');
       
       // Reset form
@@ -125,15 +136,16 @@ const MovieUpload = () => {
         description: '',
         releaseYear: '',
         duration: '',
-        videoUrl: '',
-        thumbnailUrl: '',
-        posterUrl: '',
         trailerUrl: '',
         genre: '',
         imdbRating: '',
         featured: false,
         trending: false
       });
+      setVideoFile(null);
+      setPosterFile(null);
+      setThumbnailFile(null);
+      setUploadProgress(null);
       
     } catch (error) {
       console.error('Error creating movie:', error);
@@ -248,45 +260,50 @@ const MovieUpload = () => {
           />
         </div>
 
-        {/* URLs */}
+        {/* Files */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Video URL
+              Video File *
             </label>
             <input
-              type="url"
-              name="videoUrl"
-              value={movieData.videoUrl}
-              onChange={handleInputChange}
+              type="file"
+              name="videoFile"
+              accept="video/*"
+              onChange={handleFileChange}
               className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
             />
+            {videoFile && <p className="mt-1 text-sm text-gray-600">{videoFile.name}</p>}
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Thumbnail URL
+              Poster *
             </label>
             <input
-              type="url"
-              name="thumbnailUrl"
-              value={movieData.thumbnailUrl}
-              onChange={handleInputChange}
+              type="file"
+              name="posterFile"
+              accept="image/*"
+              onChange={handleFileChange}
               className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
             />
+            {posterFile && <p className="mt-1 text-sm text-gray-600">{posterFile.name}</p>}
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Poster URL
+              Thumbnail (optional)
             </label>
             <input
-              type="url"
-              name="posterUrl"
-              value={movieData.posterUrl}
-              onChange={handleInputChange}
+              type="file"
+              name="thumbnailFile"
+              accept="image/*"
+              onChange={handleFileChange}
               className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
+            {thumbnailFile && <p className="mt-1 text-sm text-gray-600">{thumbnailFile.name}</p>}
           </div>
 
           <div>
@@ -302,6 +319,15 @@ const MovieUpload = () => {
             />
           </div>
         </div>
+
+        {uploadProgress !== null && (
+          <div className="w-full bg-gray-200 rounded-full h-2.5">
+            <div
+              className="bg-blue-600 h-2.5 rounded-full"
+              style={{ width: `${Math.round(uploadProgress)}%` }}
+            />
+          </div>
+        )}
 
         {/* Checkboxes */}
         <div className="flex gap-6">
