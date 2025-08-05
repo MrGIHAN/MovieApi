@@ -3,6 +3,7 @@ import { toast } from 'react-hot-toast';
 import { GENRES } from '../../utils/constants';
 import uploadService from '../../services/uploadService';
 
+
 const MovieUpload = () => {
   const [movieData, setMovieData] = useState({
     title: '',
