@@ -21,6 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
@@ -80,17 +81,19 @@ public class StreamingController {
 
             long fileSize = videoFile.length();
             Resource videoResource = new FileSystemResource(videoFile);
+            String contentType = Files.probeContentType(videoFile.toPath());
+            MediaType mediaType = contentType != null ? MediaType.valueOf(contentType) : MediaType.APPLICATION_OCTET_STREAM;
 
             logger.info("Streaming video: {} (size: {} bytes)", movie.getTitle(), fileSize);
 
             // Handle range requests for video streaming
             if (rangeHeader != null && rangeHeader.startsWith("bytes=")) {
-                return handleRangeRequest(videoResource, rangeHeader, fileSize);
+                return handleRangeRequest(videoResource, rangeHeader, fileSize, mediaType);
             }
 
             // Full file response
             return ResponseEntity.ok()
-                    .contentType(MediaType.valueOf("video/mp4"))
+                    .contentType(mediaType)
                     .contentLength(fileSize)
                     .header(HttpHeaders.ACCEPT_RANGES, "bytes")
                     .header(HttpHeaders.CACHE_CONTROL, "max-age=3600")
@@ -143,7 +146,7 @@ public class StreamingController {
         }
     }
 
-    private ResponseEntity<Resource> handleRangeRequest(Resource resource, String rangeHeader, long fileSize) {
+    private ResponseEntity<Resource> handleRangeRequest(Resource resource, String rangeHeader, long fileSize, MediaType mediaType) {
         try {
             String[] ranges = rangeHeader.substring(6).split("-");
             long start = Long.parseLong(ranges[0]);
@@ -160,7 +163,7 @@ public class StreamingController {
             long contentLength = end - start + 1;
 
             return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
-                    .contentType(MediaType.valueOf("video/mp4"))
+                    .contentType(mediaType)
                     .contentLength(contentLength)
                     .header(HttpHeaders.ACCEPT_RANGES, "bytes")
                     .header(HttpHeaders.CONTENT_RANGE, "bytes " + start + "-" + end + "/" + fileSize)
