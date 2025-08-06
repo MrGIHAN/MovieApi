@@ -171,7 +171,7 @@ const MovieUpload = () => {
               name="title"
               value={movieData.title}
               onChange={handleInputChange}
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-3 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             />
           </div>
@@ -185,7 +185,7 @@ const MovieUpload = () => {
               name="genre"
               value={movieData.genre}
               onChange={handleInputChange}
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-3 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             >
               <option value="">Select Genre</option>
@@ -209,7 +209,7 @@ const MovieUpload = () => {
               onChange={handleInputChange}
               min="1900"
               max={new Date().getFullYear() + 5}
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-3 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
@@ -224,7 +224,7 @@ const MovieUpload = () => {
               value={movieData.duration}
               onChange={handleInputChange}
               placeholder="120 or 02:00:00"
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-3 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
@@ -241,7 +241,7 @@ const MovieUpload = () => {
               step="0.1"
               min="0"
               max="10"
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-3 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
         </div>
@@ -256,7 +256,7 @@ const MovieUpload = () => {
             value={movieData.description}
             onChange={handleInputChange}
             rows="4"
-            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full p-3 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
 
@@ -271,7 +271,8 @@ const MovieUpload = () => {
               name="videoFile"
               accept="video/*"
               onChange={handleFileChange}
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+
+              className="w-full p-3 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             />
             {videoFile && <p className="mt-1 text-sm text-gray-600">{videoFile.name}</p>}
@@ -286,7 +287,8 @@ const MovieUpload = () => {
               name="posterFile"
               accept="image/*"
               onChange={handleFileChange}
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+
+              className="w-full p-3 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             />
             {posterFile && <p className="mt-1 text-sm text-gray-600">{posterFile.name}</p>}
@@ -301,7 +303,9 @@ const MovieUpload = () => {
               name="thumbnailFile"
               accept="image/*"
               onChange={handleFileChange}
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+
+              className="w-full p-3 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+
             />
             {thumbnailFile && <p className="mt-1 text-sm text-gray-600">{thumbnailFile.name}</p>}
           </div>
@@ -315,7 +319,7 @@ const MovieUpload = () => {
               name="trailerUrl"
               value={movieData.trailerUrl}
               onChange={handleInputChange}
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-3 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
         </div>
@@ -366,8 +370,8 @@ const MovieUpload = () => {
             type="submit"
             disabled={loading}
             className={`px-6 py-3 rounded-md text-white font-medium ${
-              loading 
-                ? 'bg-gray-400 cursor-not-allowed' 
+              loading
+                ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
             } transition-colors`}
           >
