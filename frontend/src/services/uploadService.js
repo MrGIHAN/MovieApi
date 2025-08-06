@@ -188,9 +188,15 @@ export const uploadService = {
       updateProgress('create', 0);
       const completeMovieData = {
         ...movieData,
-        videoUrl: videoResponse.url || videoResponse.filePath,
-        posterUrl: posterResponse.url || posterResponse.filePath,
-        thumbnailUrl: thumbnailResponse?.url || thumbnailResponse?.filePath || (posterResponse.url || posterResponse.filePath),
+        videoUrl: videoResponse.fileUrl || videoResponse.url || videoResponse.filePath,
+        posterUrl: posterResponse.fileUrl || posterResponse.url || posterResponse.filePath,
+        thumbnailUrl:
+          thumbnailResponse?.fileUrl ||
+          thumbnailResponse?.url ||
+          thumbnailResponse?.filePath ||
+          posterResponse.fileUrl ||
+          posterResponse.url ||
+          posterResponse.filePath,
         fileSize: videoFile.size,
         uploadedAt: new Date().toISOString()
       };
