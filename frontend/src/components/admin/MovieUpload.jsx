@@ -3,6 +3,7 @@ import { toast } from 'react-hot-toast';
 import { GENRES } from '../../utils/constants';
 import uploadService from '../../services/uploadService';
 
+
 const MovieUpload = () => {
   const [movieData, setMovieData] = useState({
     title: '',
@@ -270,6 +271,7 @@ const MovieUpload = () => {
               name="videoFile"
               accept="video/*"
               onChange={handleFileChange}
+
               className="w-full p-3 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             />
@@ -285,6 +287,7 @@ const MovieUpload = () => {
               name="posterFile"
               accept="image/*"
               onChange={handleFileChange}
+
               className="w-full p-3 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             />
@@ -300,7 +303,9 @@ const MovieUpload = () => {
               name="thumbnailFile"
               accept="image/*"
               onChange={handleFileChange}
+
               className="w-full p-3 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+
             />
             {thumbnailFile && <p className="mt-1 text-sm text-gray-600">{thumbnailFile.name}</p>}
           </div>
