@@ -5,7 +5,7 @@ import { useMovies } from '../hooks/useMovies';
 import { useAuth } from '../hooks/useAuth';
 import MovieGrid from '../components/movie/MovieGrid';
 import { SkeletonLoader } from '../components/common/Loader';
-import { API_BASE_URL } from '../utils/constants';
+import { API_BASE_URL, API_ENDPOINTS } from '../utils/constants';
 
 const Home = () => {
   const { isAuthenticated } = useAuth();
@@ -24,7 +24,7 @@ const Home = () => {
     // Test API connection
     const testApiConnection = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/movies`);
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.MOVIES.BASE}`);
         if (response.ok) {
           setApiStatus('connected');
         } else {
