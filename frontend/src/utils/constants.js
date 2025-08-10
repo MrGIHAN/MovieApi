@@ -1,5 +1,6 @@
-// API Base URL
-export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+
+export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8081';
+
 
 // API Endpoints
 export const API_ENDPOINTS = {
@@ -36,9 +37,9 @@ export const API_ENDPOINTS = {
     UPDATE_HISTORY: (movieId) => `/api/users/history/${movieId}`,
   },
   
-  // Streaming endpoints
+  // Streaming endpoints - FIXED: Uses full URL for video streaming
   STREAMING: {
-    STREAM: (movieId) => `/api/stream/${movieId}`,
+    STREAM: (movieId) => `${API_BASE_URL}/api/stream/${movieId}`,
     PROGRESS: '/api/stream/progress',
     COMPLETE: (movieId) => `/api/stream/complete/${movieId}`,
   },
@@ -71,23 +72,23 @@ export const GENRES = [
   'ACTION',
   'COMEDY', 
   'DRAMA',
-  'HORROR',
   'THRILLER',
+  'HORROR',
   'ROMANCE',
-  'SCIENCE_FICTION',
+  'SCI_FI',
   'FANTASY',
-  'DOCUMENTARY',
-  'ANIMATION',
-  'MYSTERY',
-  'CRIME',
   'ADVENTURE',
+  'CRIME',
+  'MYSTERY',
+  'ANIMATION',
   'FAMILY',
+  'DOCUMENTARY',
   'MUSICAL',
   'WAR',
   'WESTERN',
+  'HISTORICAL',
   'BIOGRAPHY',
-  'HISTORY',
-  'SPORT'
+  'SPORT',
 ];
 
 // Genre Display Names
@@ -95,69 +96,67 @@ export const GENRE_DISPLAY_NAMES = {
   ACTION: 'Action',
   COMEDY: 'Comedy',
   DRAMA: 'Drama',
-  HORROR: 'Horror',
   THRILLER: 'Thriller',
+  HORROR: 'Horror',
   ROMANCE: 'Romance',
-  SCIENCE_FICTION: 'Sci-Fi',
+  SCI_FI: 'Sci-Fi',
   FANTASY: 'Fantasy',
-  DOCUMENTARY: 'Documentary',
-  ANIMATION: 'Animation',
-  MYSTERY: 'Mystery',
-  CRIME: 'Crime',
   ADVENTURE: 'Adventure',
+  CRIME: 'Crime',
+  MYSTERY: 'Mystery',
+  ANIMATION: 'Animation',
   FAMILY: 'Family',
+  DOCUMENTARY: 'Documentary',
   MUSICAL: 'Musical',
   WAR: 'War',
   WESTERN: 'Western',
+  HISTORICAL: 'Historical',
   BIOGRAPHY: 'Biography',
-  HISTORY: 'History',
-  SPORT: 'Sport'
+  SPORT: 'Sport',
 };
 
-// Storage Keys
+// Storage keys
 export const STORAGE_KEYS = {
-  TOKEN: 'netflix_token',
-  REFRESH_TOKEN: 'netflix_refresh_token',
-  USER: 'netflix_user',
-  THEME: 'netflix_theme',
-  VOLUME: 'netflix_volume',
-  PLAYBACK_QUALITY: 'netflix_quality',
+  TOKEN: 'movieapi_token',
+  REFRESH_TOKEN: 'movieapi_refresh_token',
+  USER: 'movieapi_user',
+  PREFERENCES: 'movieapi_preferences',
 };
 
 // User Roles
 export const USER_ROLES = {
-  ADMIN: 'ADMIN',
   USER: 'USER',
+  ADMIN: 'ADMIN',
 };
 
 // Toast Messages
 export const TOAST_MESSAGES = {
   SUCCESS: {
-    LOGIN: 'Welcome back!',
+    LOGIN: 'Successfully logged in!',
+    LOGOUT: 'Successfully logged out!',
     REGISTER: 'Account created successfully!',
-    LOGOUT: 'Goodbye!',
-    FAVORITE_ADDED: 'Added to favorites',
-    FAVORITE_REMOVED: 'Removed from favorites',
-    WATCHLIST_ADDED: 'Added to watchlist',
-    WATCHLIST_REMOVED: 'Removed from watchlist',
-    WATCH_LATER_ADDED: 'Added to watch later',
-    WATCH_LATER_REMOVED: 'Removed from watch later',
-    PROFILE_UPDATED: 'Profile updated successfully',
-    MOVIE_UPLOADED: 'Movie uploaded successfully',
-    MOVIE_UPDATED: 'Movie updated successfully',
-    MOVIE_DELETED: 'Movie deleted successfully',
+    UPDATE_PROFILE: 'Profile updated successfully!',
+    ADD_TO_WATCHLIST: 'Added to watchlist!',
+    REMOVE_FROM_WATCHLIST: 'Removed from watchlist!',
+    ADD_TO_FAVORITES: 'Added to favorites!',
+    REMOVE_FROM_FAVORITES: 'Removed from favorites!',
+    FILE_UPLOAD: 'File uploaded successfully!',
+    MOVIE_CREATED: 'Movie created successfully!',
+    MOVIE_UPDATED: 'Movie updated successfully!',
+    MOVIE_DELETED: 'Movie deleted successfully!',
   },
   ERROR: {
-    GENERAL: 'Something went wrong',
-    LOGIN_FAILED: 'Invalid email or password',
-    REGISTER_FAILED: 'Registration failed',
-    NETWORK_ERROR: 'Network error. Please try again.',
+    GENERIC: 'Something went wrong. Please try again.',
+    NETWORK: 'Network error. Please check your connection.',
     UNAUTHORIZED: 'Please log in to continue',
     FORBIDDEN: 'Access denied',
     NOT_FOUND: 'Resource not found',
     VALIDATION_ERROR: 'Please check your input',
     FILE_TOO_LARGE: 'File too large',
     INVALID_FILE_TYPE: 'Invalid file type',
+    VIDEO_LOAD_ERROR: 'Failed to load video',
+    LOGIN_FAILED: 'Login failed. Please check your credentials.',
+    REGISTER_FAILED: 'Registration failed. Please try again.',
   }
 };
 
@@ -173,19 +172,28 @@ export const FILE_CONSTRAINTS = {
   }
 };
 
+// Video Player Configuration
+export const VIDEO_PLAYER = {
+  PROGRESS_UPDATE_INTERVAL: 5000, // 5 seconds
+  COMPLETION_THRESHOLD: 0.9, // 90% watched = completed
+  SEEK_STEP: 10, // seconds
+  VOLUME_STEP: 0.1,
+  PLAYBACK_RATES: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
+  AUTO_HIDE_CONTROLS_DELAY: 3000, // 3 seconds
+};
+
 // Pagination
 export const PAGINATION = {
   DEFAULT_PAGE_SIZE: 20,
   MAX_PAGE_SIZE: 100,
 };
 
-// Video Player
-export const VIDEO_PLAYER = {
-  PROGRESS_UPDATE_INTERVAL: 5000, // 5 seconds
-  COMPLETION_THRESHOLD: 0.9, // 90% watched = completed
-  SEEK_STEP: 10, // seconds
-  VOLUME_STEP: 0.1,
-};
+// App constants
+export const APP_NAME = 'MovieAPI';
+export const DEFAULT_PAGE_SIZE = 20;
+export const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+export const SUPPORTED_VIDEO_FORMATS = ['mp4', 'webm', 'ogg', 'avi', 'mov'];
+export const SUPPORTED_IMAGE_FORMATS = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
 
 // Routes
 export const ROUTES = {
@@ -217,6 +225,26 @@ export const BREAKPOINTS = {
   '2xl': '1536px',
 };
 
+// API Response Status Codes
+export const HTTP_STATUS = {
+  OK: 200,
+  CREATED: 201,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  INTERNAL_SERVER_ERROR: 500,
+};
+
+// Loading States
+export const LOADING_STATES = {
+  IDLE: 'idle',
+  LOADING: 'loading',
+  SUCCESS: 'success',
+  ERROR: 'error',
+};
+
+// Default export with all constants
 export default {
   API_BASE_URL,
   API_ENDPOINTS,
@@ -226,8 +254,15 @@ export default {
   USER_ROLES,
   TOAST_MESSAGES,
   FILE_CONSTRAINTS,
-  PAGINATION,
   VIDEO_PLAYER,
+  PAGINATION,
+  APP_NAME,
+  DEFAULT_PAGE_SIZE,
+  MAX_FILE_SIZE,
+  SUPPORTED_VIDEO_FORMATS,
+  SUPPORTED_IMAGE_FORMATS,
   ROUTES,
   BREAKPOINTS,
+  HTTP_STATUS,
+  LOADING_STATES,
 };

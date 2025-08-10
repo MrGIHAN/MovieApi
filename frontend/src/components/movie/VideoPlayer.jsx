@@ -14,7 +14,7 @@ import {
 import { useMovies } from '../../hooks/useMovies';
 import { useAuth } from '../../hooks/useAuth';
 import { formatVideoTime, throttle } from '../../utils/helpers';
-import { VIDEO_PLAYER } from '../../utils/constants';
+import { VIDEO_PLAYER, API_ENDPOINTS } from '../../utils/constants';
 
 const VideoPlayer = ({ 
   movie, 
@@ -42,44 +42,124 @@ const VideoPlayer = ({
   const [isLoading, setIsLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1);
-  const [quality, setQuality] = useState('auto');
   const [isBuffering, setIsBuffering] = useState(false);
   const [error, setError] = useState(null);
 
   // Settings options
-  const playbackRates = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
-  const qualityOptions = ['auto', '1080p', '720p', '480p', '360p'];
+  const playbackRates = VIDEO_PLAYER.PLAYBACK_RATES;
 
-  // Initialize video
+  // Get the correct video URL
+  const getVideoUrl = useCallback(() => {
+    if (!movie?.id) return '';
+    // Use the full URL from API_ENDPOINTS to ensure correct server address
+    return API_ENDPOINTS.STREAMING.STREAM(movie.id);
+  }, [movie?.id]);
+
+  // Video event handlers
+  const handleLoadStart = () => {
+    console.log('Video load started for movie:', movie?.title);
+    setIsLoading(true);
+    setError(null);
+  };
+
+  const handleLoadedData = () => {
+    console.log('Video data loaded for movie:', movie?.title);
+    setIsLoading(false);
+  };
+
+  const handleLoadedMetadata = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    
+    console.log('Video metadata loaded:', {
+      duration: video.duration,
+      videoWidth: video.videoWidth,
+      videoHeight: video.videoHeight
+    });
+    
+    setDuration(video.duration);
+    
+    if (startTime > 0) {
+      video.currentTime = startTime;
+    }
+    
+    if (autoPlay) {
+      video.play().catch(error => {
+        console.error('Auto-play failed:', error);
+        setError('Auto-play failed. Click to play video.');
+      });
+    }
+  };
+
+  const handleTimeUpdate = throttle(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    setCurrentTime(video.currentTime);
+  }, 1000);
+
+  const handlePlay = () => {
+    setIsPlaying(true);
+    setError(null);
+  };
+
+  const handlePause = () => {
+    setIsPlaying(false);
+  };
+
+  const handleVolumeChange = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    setVolume(video.volume);
+    setIsMuted(video.muted);
+  };
+
+  const handleWaiting = () => {
+    setIsBuffering(true);
+  };
+
+  const handleCanPlay = () => {
+    setIsBuffering(false);
+  };
+
+  const handleError = (e) => {
+    console.error('Video error:', e);
+    const video = videoRef.current;
+    if (video && video.error) {
+      const errorCode = video.error.code;
+      const errorMessage = video.error.message;
+      console.error('Video error details:', { errorCode, errorMessage });
+      
+      let userFriendlyMessage = 'Failed to load video';
+      switch (errorCode) {
+        case 1: // MEDIA_ERR_ABORTED
+          userFriendlyMessage = 'Video loading was aborted';
+          break;
+        case 2: // MEDIA_ERR_NETWORK
+          userFriendlyMessage = 'Network error occurred while loading video';
+          break;
+        case 3: // MEDIA_ERR_DECODE
+          userFriendlyMessage = 'Video format not supported or corrupted';
+          break;
+        case 4: // MEDIA_ERR_SRC_NOT_SUPPORTED
+          userFriendlyMessage = 'Video source not supported';
+          break;
+        default:
+          userFriendlyMessage = `Video error: ${errorMessage || 'Unknown error'}`;
+      }
+      
+      setError(userFriendlyMessage);
+    }
+    setIsLoading(false);
+    setIsBuffering(false);
+  };
+
+  // Setup video element and event listeners
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !movie) return;
 
-    const handleLoadStart = () => setIsLoading(true);
-    const handleLoadedData = () => {
-      setIsLoading(false);
-      setDuration(video.duration);
-      if (startTime > 0) {
-        video.currentTime = startTime;
-      }
-      if (autoPlay) {
-        video.play().catch(console.error);
-      }
-    };
-    const handleLoadedMetadata = () => setDuration(video.duration);
-    const handleTimeUpdate = () => setCurrentTime(video.currentTime);
-    const handlePlay = () => setIsPlaying(true);
-    const handlePause = () => setIsPlaying(false);
-    const handleVolumeChange = () => {
-      setVolume(video.volume);
-      setIsMuted(video.muted);
-    };
-    const handleWaiting = () => setIsBuffering(true);
-    const handleCanPlay = () => setIsBuffering(false);
-    const handleError = (e) => {
-      setError('Failed to load video');
-      setIsLoading(false);
-    };
+    console.log('Setting up video for movie:', movie.title);
+    console.log('Video URL:', getVideoUrl());
 
     video.addEventListener('loadstart', handleLoadStart);
     video.addEventListener('loadeddata', handleLoadedData);
@@ -104,7 +184,7 @@ const VideoPlayer = ({
       video.removeEventListener('canplay', handleCanPlay);
       video.removeEventListener('error', handleError);
     };
-  }, [movie, autoPlay, startTime]);
+  }, [movie, autoPlay, startTime, getVideoUrl, handleTimeUpdate]);
 
   // Update watch progress
   const updateProgress = useCallback((currentTime, duration) => {
@@ -141,7 +221,7 @@ const VideoPlayer = ({
         if (isPlaying) {
           setShowControls(false);
         }
-      }, 3000);
+      }, VIDEO_PLAYER.AUTO_HIDE_CONTROLS_DELAY);
     }
 
     return () => {
@@ -151,57 +231,7 @@ const VideoPlayer = ({
     };
   }, [showControls, isPlaying]);
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (!videoRef.current) return;
-
-      switch (e.code) {
-        case 'Space':
-          e.preventDefault();
-          togglePlayPause();
-          break;
-        case 'ArrowLeft':
-          e.preventDefault();
-          skipBackward();
-          break;
-        case 'ArrowRight':
-          e.preventDefault();
-          skipForward();
-          break;
-        case 'ArrowUp':
-          e.preventDefault();
-          adjustVolume(0.1);
-          break;
-        case 'ArrowDown':
-          e.preventDefault();
-          adjustVolume(-0.1);
-          break;
-        case 'KeyM':
-          e.preventDefault();
-          toggleMute();
-          break;
-        case 'KeyF':
-          e.preventDefault();
-          toggleFullscreen();
-          break;
-        case 'Escape':
-          if (isFullscreen) {
-            exitFullscreen();
-          } else if (onClose) {
-            onClose();
-          }
-          break;
-        default:
-          break;
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isPlaying, isFullscreen, onClose]);
-
-  // Fullscreen change handler
+  // Fullscreen event listener
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
@@ -219,7 +249,10 @@ const VideoPlayer = ({
     if (isPlaying) {
       video.pause();
     } else {
-      video.play().catch(console.error);
+      video.play().catch(error => {
+        console.error('Play failed:', error);
+        setError('Failed to play video');
+      });
     }
   };
 
@@ -265,12 +298,6 @@ const VideoPlayer = ({
     }
   };
 
-  const exitFullscreen = () => {
-    if (document.fullscreenElement) {
-      document.exitFullscreen().catch(console.error);
-    }
-  };
-
   const handleProgressClick = (e) => {
     const video = videoRef.current;
     const progressBar = progressRef.current;
@@ -285,7 +312,7 @@ const VideoPlayer = ({
     setCurrentTime(newTime);
   };
 
-  const handleVolumeChange = (e) => {
+  const handleVolumeSliderChange = (e) => {
     const video = videoRef.current;
     if (!video) return;
     
@@ -345,8 +372,9 @@ const VideoPlayer = ({
         playsInline
         preload="metadata"
         onClick={togglePlayPause}
+        crossOrigin="anonymous"
       >
-        <source src={`/api/stream/${movie.id}`} type="video/mp4" />
+        <source src={getVideoUrl()} type="video/mp4" />
         Your browser does not support the video tag.
       </video>
 
@@ -365,12 +393,26 @@ const VideoPlayer = ({
         <div className="absolute inset-0 flex items-center justify-center bg-black/75">
           <div className="text-center text-white">
             <p className="text-xl mb-4">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="btn btn-primary"
-            >
-              Retry
-            </button>
+            <div className="space-x-4">
+              <button
+                onClick={() => {
+                  setError(null);
+                  const video = videoRef.current;
+                  if (video) {
+                    video.load();
+                  }
+                }}
+                className="btn btn-primary"
+              >
+                Retry
+              </button>
+              <button
+                onClick={() => window.open(getVideoUrl(), '_blank')}
+                className="btn btn-secondary"
+              >
+                Open Direct Link
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -378,13 +420,14 @@ const VideoPlayer = ({
       {/* Controls Overlay */}
       <div
         className={`absolute inset-0 transition-opacity duration-300 ${
-          showControls ? 'opacity-100' : 'opacity-0'
+          showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
       >
         {/* Top Bar */}
         <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/80 to-transparent p-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+            <h3 className="text-white text-lg font-semibold">{movie.title}</h3>
+            <div className="flex items-center space-x-2">
               {onClose && (
                 <button
                   onClick={onClose}
@@ -393,17 +436,6 @@ const VideoPlayer = ({
                   <XMarkIcon className="h-6 w-6" />
                 </button>
               )}
-              <h1 className="text-white text-lg font-semibold">{movie.title}</h1>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setShowSettings(!showSettings)}
-                className="text-white hover:text-netflix-lightGray transition-colors duration-200"
-              >
-                <Cog6ToothIcon className="h-6 w-6" />
-              </button>
-              
               <button
                 onClick={toggleFullscreen}
                 className="text-white hover:text-netflix-lightGray transition-colors duration-200"
@@ -478,7 +510,6 @@ const VideoPlayer = ({
                 <ForwardIcon className="h-6 w-6" />
               </button>
 
-              {/* Volume Control */}
               <div className="flex items-center space-x-2">
                 <button
                   onClick={toggleMute}
@@ -490,72 +521,43 @@ const VideoPlayer = ({
                   type="range"
                   min="0"
                   max="1"
-                  step="0.1"
+                  step={VIDEO_PLAYER.VOLUME_STEP}
                   value={isMuted ? 0 : volume}
-                  onChange={handleVolumeChange}
+                  onChange={handleVolumeSliderChange}
                   className="w-20 h-1 bg-white/30 rounded-full appearance-none cursor-pointer"
-                  style={{
-                    background: `linear-gradient(to right, #E50914 0%, #E50914 ${(isMuted ? 0 : volume) * 100}%, rgba(255,255,255,0.3) ${(isMuted ? 0 : volume) * 100}%, rgba(255,255,255,0.3) 100%)`
-                  }}
                 />
               </div>
             </div>
 
-            <div className="flex items-center space-x-2 text-white text-sm">
-              <span>{playbackRate}x</span>
-              <span>•</span>
-              <span>{quality}</span>
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <button
+                  onClick={() => setShowSettings(!showSettings)}
+                  className="text-white hover:text-netflix-lightGray transition-colors duration-200"
+                >
+                  <Cog6ToothIcon className="h-6 w-6" />
+                </button>
+
+                {showSettings && (
+                  <div className="absolute bottom-full right-0 mb-2 bg-black/90 rounded-md p-2 min-w-[120px]">
+                    <div className="text-white text-sm mb-2">Playback Speed</div>
+                    {playbackRates.map(rate => (
+                      <button
+                        key={rate}
+                        onClick={() => handlePlaybackRateChange(rate)}
+                        className={`block w-full text-left px-2 py-1 text-sm hover:bg-white/20 rounded ${
+                          playbackRate === rate ? 'text-netflix-red' : 'text-white'
+                        }`}
+                      >
+                        {rate}x
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
-
-        {/* Settings Menu */}
-        {showSettings && (
-          <div className="absolute bottom-16 right-4 bg-netflix-darkGray/95 backdrop-blur-sm rounded-lg p-4 min-w-48">
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-white font-medium mb-2">Playback Speed</h4>
-                <div className="space-y-1">
-                  {playbackRates.map((rate) => (
-                    <button
-                      key={rate}
-                      onClick={() => handlePlaybackRateChange(rate)}
-                      className={`block w-full text-left px-3 py-2 rounded text-sm transition-colors duration-200 ${
-                        playbackRate === rate
-                          ? 'bg-netflix-red text-white'
-                          : 'text-netflix-lightGray hover:text-white hover:bg-netflix-gray'
-                      }`}
-                    >
-                      {rate}x {rate === 1 ? '(Normal)' : ''}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h4 className="text-white font-medium mb-2">Quality</h4>
-                <div className="space-y-1">
-                  {qualityOptions.map((q) => (
-                    <button
-                      key={q}
-                      onClick={() => {
-                        setQuality(q);
-                        setShowSettings(false);
-                      }}
-                      className={`block w-full text-left px-3 py-2 rounded text-sm transition-colors duration-200 ${
-                        quality === q
-                          ? 'bg-netflix-red text-white'
-                          : 'text-netflix-lightGray hover:text-white hover:bg-netflix-gray'
-                      }`}
-                    >
-                      {q === 'auto' ? 'Auto' : q}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

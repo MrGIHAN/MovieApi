@@ -53,7 +53,7 @@ public class StreamingController {
 
         try {
             logger.info("Streaming request for movie ID: {}", movieId);
-            
+
             Movie movie = movieService.getMovieEntityById(movieId);
             if (movie == null) {
                 throw new ResourceNotFoundException("Movie", "id", movieId);
@@ -82,7 +82,8 @@ public class StreamingController {
             long fileSize = videoFile.length();
             Resource videoResource = new FileSystemResource(videoFile);
             String contentType = Files.probeContentType(videoFile.toPath());
-            MediaType mediaType = contentType != null ? MediaType.valueOf(contentType) : MediaType.APPLICATION_OCTET_STREAM;
+            MediaType mediaType = contentType != null ?
+                    MediaType.valueOf(contentType) : MediaType.APPLICATION_OCTET_STREAM;
 
             logger.info("Streaming video: {} (size: {} bytes)", movie.getTitle(), fileSize);
 
@@ -184,27 +185,51 @@ public class StreamingController {
         return userService.findByEmail(auth.getName());
     }
 
+    /**
+     * FIXED: Get secure video file path with proper path construction and sanitization
+     */
     private String getSecureVideoFilePath(String videoUrl) {
-        // Extract filename from URL and construct local path
+        logger.info("DEBUG - Original videoUrl from database: {}", videoUrl);
+        logger.info("DEBUG - Configured videoDirectory: {}", videoDirectory);
+
+        // Extract filename from URL path
         String fileName;
         if (videoUrl.startsWith("http")) {
-            // If it's a URL, extract filename
+            // If it's a full URL, extract filename
+            fileName = videoUrl.substring(videoUrl.lastIndexOf('/') + 1);
+        } else if (videoUrl.startsWith("/uploads/")) {
+            // If it's a relative URL like "/uploads/videos/filename.mp4"
             fileName = videoUrl.substring(videoUrl.lastIndexOf('/') + 1);
         } else {
-            // If it's already a filename
+            // If it's already just a filename
             fileName = videoUrl;
         }
-        
-        // Sanitize filename to prevent path traversal
+
+        logger.info("DEBUG - Extracted fileName: {}", fileName);
+
+        // Sanitize filename to prevent path traversal but keep extension
         fileName = sanitizeFileName(fileName);
-        
-        return Paths.get(videoDirectory, fileName).toString();
+
+        logger.info("DEBUG - Sanitized fileName: {}", fileName);
+
+        String finalPath = Paths.get(videoDirectory, fileName).toString();
+        logger.info("DEBUG - Final video file path: {}", finalPath);
+
+        return finalPath;
     }
 
+    /**
+     * FIXED: Sanitize filename while preserving file extension
+     */
     private String sanitizeFileName(String fileName) {
-        // Remove path traversal attempts and dangerous characters
-        return fileName.replaceAll("[./\\\\]", "")
-                      .replaceAll("[^a-zA-Z0-9._-]", "_");
+        // Preserve file extension but prevent path traversal
+        if (fileName.contains("..") || fileName.contains("/") || fileName.contains("\\")) {
+            // If there are path traversal attempts, extract just the filename
+            fileName = Paths.get(fileName).getFileName().toString();
+        }
+
+        // Remove any remaining dangerous characters but keep dots for extensions
+        return fileName.replaceAll("[^a-zA-Z0-9._-]", "_");
     }
 
     private boolean isPathSecure(Path filePath, Path allowedDirectory) {
