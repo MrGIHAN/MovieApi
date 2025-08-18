@@ -9,47 +9,50 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Configuration
 public class CorsConfig {
 
-    @Value("${app.cors.allowed-origins}")
-    private String allowedOrigins;
+    @Value("${app.cors.allowed-origins:http://localhost:3000}")
+    private String allowedOriginsProperty;
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Parse allowed origins from environment variable
-        List<String> origins = Arrays.asList(allowedOrigins.split(","));
+        // Support comma-separated origins or patterns (e.g., https://*.vercel.app)
+        List<String> origins = Arrays.stream(allowedOriginsProperty.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
+
+        // Use patterns so wildcards like https://*.vercel.app are supported
         configuration.setAllowedOriginPatterns(origins);
-        
+
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList(
-            "Authorization", 
-            "Content-Type", 
-            "X-Requested-With", 
-            "Accept", 
-            "Origin", 
-            "Access-Control-Request-Method", 
-            "Access-Control-Request-Headers",
-            "Range"
+                "Authorization",
+                "Content-Type",
+                "X-Requested-With",
+                "Accept",
+                "Origin",
+                "Access-Control-Request-Method",
+                "Access-Control-Request-Headers",
+                "Range"
+        ));
+        configuration.setExposedHeaders(Arrays.asList(
+                "Content-Range",
+                "Accept-Ranges",
+                "Content-Length",
+                "Content-Type"
         ));
         configuration.setAllowCredentials(true);
-        configuration.setExposedHeaders(Arrays.asList(
-            "Authorization", 
-            "Content-Range", 
-            "Accept-Ranges", 
-            "Content-Length",
-            "Content-Type"
-        ));
-        
-        // Cache preflight response for 1 hour
+        // Cache preflight for 1 hour
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
-
         return source;
     }
 }
