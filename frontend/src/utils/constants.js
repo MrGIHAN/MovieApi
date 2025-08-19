@@ -244,8 +244,8 @@ export const LOADING_STATES = {
   ERROR: 'error',
 };
 
-// Default export with all constants
-export default {
+
+const constants = {
   API_BASE_URL,
   API_ENDPOINTS,
   GENRES,
@@ -266,3 +266,5 @@ export default {
   HTTP_STATUS,
   LOADING_STATES,
 };
+
+export default constants;
