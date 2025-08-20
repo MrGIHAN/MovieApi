@@ -15,7 +15,7 @@ const MovieGrid = ({
   className = '',
 }) => {
   // Ensure movies is always an array
-  const safeMovies = Array.isArray(movies) ? movies : [];
+  const safeMovies = (Array.isArray(movies) ? movies : []).filter(Boolean);
   const [layout, setLayout] = useState('grid'); // 'grid' or 'list'
   const [sortBy, setSortBy] = useState('title');
   const [sortOrder, setSortOrder] = useState('asc');

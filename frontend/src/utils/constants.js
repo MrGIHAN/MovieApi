@@ -34,11 +34,11 @@ export const API_ENDPOINTS = {
   USERS: {
     ME: '/api/users/me',
     WATCHLIST: '/api/users/watchlist',
-    FAVORITES: '/api/users/favorites',
+    FAVORITES: '/api/favorites',
     WATCH_LATER: '/api/watch-later',
     HISTORY: '/api/users/history',
     PREFERENCES: '/api/users/preferences',
-    ADD_TO_WATCHLIST: (movieId) => `/api/users/watchlist/${movieId}`,
+    ADD_TO_FAVORITES: (movieId) => `/api/favorites/${movieId}`,
     ADD_TO_FAVORITES: (movieId) => `/api/users/favorites/${movieId}`,
     ADD_TO_WATCH_LATER: (movieId) => `/api/watch-later/${movieId}`,
     UPDATE_HISTORY: (movieId) => `/api/users/history/${movieId}`,
