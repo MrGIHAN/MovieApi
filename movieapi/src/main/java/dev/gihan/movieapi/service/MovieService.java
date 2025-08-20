@@ -19,7 +19,6 @@ public interface MovieService {
 
     MovieResponseDto getMovieById(Long id) throws NotFoundException;
 
-    // Internal method for other services that need the Movie entity
     Movie getMovieEntityById(Long id) throws NotFoundException;
 
     List<MovieResponseDto> getAllMovies();
@@ -29,6 +28,8 @@ public interface MovieService {
     List<MovieResponseDto> searchMovies(String title, String genre, Integer year, String sortBy, String sortDir);
 
     List<MovieResponseDto> getRecommendationsForUser(User user);
+
+    MovieResponseDto toDto(Movie movie);
 
 
 }

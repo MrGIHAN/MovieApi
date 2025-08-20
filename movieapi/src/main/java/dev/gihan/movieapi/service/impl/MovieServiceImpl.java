@@ -5,10 +5,7 @@ import dev.gihan.movieapi.dto.responseDto.MovieResponseDto;
 import dev.gihan.movieapi.exception.NotFoundException;
 import dev.gihan.movieapi.model.Movie;
 import dev.gihan.movieapi.model.User;
-import dev.gihan.movieapi.model.option.Genre;
 import dev.gihan.movieapi.repository.MovieRepository;
-import dev.gihan.movieapi.repository.UserPreferencesRepository;
-import dev.gihan.movieapi.repository.WatchHistoryRepository;
 import dev.gihan.movieapi.service.MovieService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,12 +18,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class MovieServiceImpl implements MovieService {
-
-    @Autowired
-    private WatchHistoryRepository watchHistoryRepository;
-
-    @Autowired
-    private UserPreferencesRepository preferencesRepository;
 
     @Autowired
     private MovieRepository movieRepository;
@@ -167,6 +158,11 @@ public class MovieServiceImpl implements MovieService {
         return recommendedMovies.stream()
                 .map(this::convertToMovieResponseDto)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public MovieResponseDto toDto(Movie movie) {
+        return convertToMovieResponseDto(movie);
     }
 
     private MovieResponseDto convertToMovieResponseDto(Movie movie) {
