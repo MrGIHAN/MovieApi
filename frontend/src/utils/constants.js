@@ -1,5 +1,12 @@
 
-export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8081';
+// export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8081';
+// Determine the API base URL. Use the environment variable if provided,
+// otherwise default to the current origin. This allows the frontend to
+// seamlessly communicate with the backend in different environments
+// (development using the proxy and production on the same host) without
+// hardcoding localhost URLs that can trigger network errors.
+export const API_BASE_URL =
+  process.env.REACT_APP_API_URL || 'http://localhost:8081';
 
 
 // API Endpoints

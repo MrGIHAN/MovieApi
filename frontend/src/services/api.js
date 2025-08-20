@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { API_BASE_URL, STORAGE_KEYS } from '../utils/constants';
+import { API_BASE_URL, STORAGE_KEYS, TOAST_MESSAGES } from '../utils/constants';
 import { AuthStorage } from '../utils/storage';
 import toast from 'react-hot-toast';
 
@@ -92,7 +92,7 @@ api.interceptors.response.use(
     } else if (error.response?.status >= 500) {
       toast.error('Server error. Please try again later.');
     } else if (!error.response) {
-      toast.error('Network error. Please check your connection.');
+      toast.error(TOAST_MESSAGES.ERROR.NETWORK);
     }
 
     return Promise.reject(error);
